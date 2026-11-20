@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cd23102f533ce4d28848bd48409a6be0, type: 3}
+  m_Name: Pack_green
+  m_EditorClassIdentifier: PackOpen.Runtime::PackOpen.PackData
+  id: green
+  displayName: Green Pack
+  cardCount: 2
+  openVariant: 0
+  rarityWeights:
+  - 70
+  - 25
+  - 5
+  wrapper: {fileID: 21300000, guid: 6c92e27a571054690868e1d2b44b8ba1, type: 3}
+  tearStrip: {fileID: 21300000, guid: 15707a8a748b7413c8a0dbd9dafa23a0, type: 3}
+  cardBack: {fileID: 21300000, guid: bb833fccba23649b2b1c5caf11691334, type: 3}
+  pool:
+  - {fileID: 11400000, guid: eec4bbe2525fd408fa30e4d8e437d4ce, type: 2}
+  - {fileID: 11400000, guid: be6818a42e90847fabbed2a5b7ac2025, type: 2}
+  - {fileID: 11400000, guid: e26c3db3e69aa41e8abff2ac72aa395b, type: 2}
+  - {fileID: 11400000, guid: b83b95ab5c3b246918d7b6ad853331d5, type: 2}
+  - {fileID: 11400000, guid: c720965d8f3b14e0ba31dec588ab21c5, type: 2}
+  - {fileID: 11400000, guid: 9a0e6468d7502411a8324e94e048de97, type: 2}
+  - {fileID: 11400000, guid: 4cc16ccc1d45e435a83aa920cf7fb737, type: 2}
+  - {fileID: 11400000, guid: 410d90cb6506f40b3816c13a027ed0bb, type: 2}
+  - {fileID: 11400000, guid: ad3557d24eadd4f34a835396a39b8ae0, type: 2}
+  - {fileID: 11400000, guid: 21d84172909cb490d9c681436bb720fd, type: 2}
+  - {fileID: 11400000, guid: 1cdde680af1964fa99b2a76e13bab041, type: 2}
+  - {fileID: 11400000, guid: cd8cfc656979b4bcb824cbb59d7dafac, type: 2}

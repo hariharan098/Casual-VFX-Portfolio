@@ -1,0 +1,10 @@
+{
+    "name": "PackOpen.PlayModeTests",
+    "rootNamespace": "PackOpen.Tests",
+    "references": ["PackOpen.Runtime", "PackOpen.Stages", "UnityEngine.TestRunner", "UnityEditor.TestRunner"],
+    "includePlatforms": [],
+    "overrideReferences": true,
+    "precompiledReferences": ["nunit.framework.dll"],
+    "defineConstraints": ["UNITY_INCLUDE_TESTS"],
+    "autoReferenced": false
+}

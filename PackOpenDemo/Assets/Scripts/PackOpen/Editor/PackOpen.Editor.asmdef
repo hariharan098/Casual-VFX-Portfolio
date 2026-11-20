@@ -1,0 +1,7 @@
+{
+    "name": "PackOpen.Editor",
+    "rootNamespace": "PackOpen.Editor",
+    "references": ["PackOpen.Runtime", "PackOpen.Stages", "UnityEngine.UI", "Unity.RenderPipelines.Universal.Runtime", "Unity.RenderPipelines.Core.Runtime"],
+    "includePlatforms": ["Editor"],
+    "autoReferenced": false
+}

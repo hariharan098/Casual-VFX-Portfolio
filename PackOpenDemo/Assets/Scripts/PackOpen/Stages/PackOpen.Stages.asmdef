@@ -1,0 +1,6 @@
+{
+    "name": "PackOpen.Stages",
+    "rootNamespace": "PackOpen.Stages",
+    "references": ["PackOpen.Runtime", "UnityEngine.UI"],
+    "autoReferenced": true
+}

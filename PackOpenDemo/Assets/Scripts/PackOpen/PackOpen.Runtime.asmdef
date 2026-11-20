@@ -1,0 +1,6 @@
+{
+    "name": "PackOpen.Runtime",
+    "rootNamespace": "PackOpen",
+    "references": ["UnityEngine.UI"],
+    "autoReferenced": true
+}

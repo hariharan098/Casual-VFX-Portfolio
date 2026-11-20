@@ -96,3 +96,6 @@ Order of effort, each with the AI helping on boilerplate only:
 1. Confirm engine (Unity?) and target device/orientation.
 2. Pick your own theme (the reference uses cartoon-brand art, so the portfolio version should be original).
 3. I generate `CLAUDE.md` + Phase 1 skeleton.
+
+
+> Update: theme is "Pocket Fantasy", engine Unity 6 URP, tweens via DOTween. Implemented scaffold lives in `PackOpenDemo/`; see `docs/ta_checklist.md`.

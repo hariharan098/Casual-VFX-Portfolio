@@ -5,21 +5,11 @@ namespace PackOpen
 {
     public static class PackRoller
     {
-        public static List<CardResult> Roll(PackData pack, CollectionState owned, System.Random rng, CardData forceFirst = null)
+        public static List<CardResult> Roll(PackData pack, System.Random rng)
         {
             var results = new List<CardResult>();
             for (int i = 0; i < pack.cardCount; i++)
-            {
-                CardData card = (i == 0 && forceFirst != null) ? forceFirst : Pick(pack, rng);
-                bool isNew = !owned.Has(card);
-                owned.Add(card);
-                results.Add(new CardResult
-                {
-                    Card = card,
-                    IsNew = isNew,
-                    StarsFromDuplicate = isNew ? 0 : card.rarity
-                });
-            }
+                results.Add(new CardResult { Card = Pick(pack, rng) });
             return results;
         }
 

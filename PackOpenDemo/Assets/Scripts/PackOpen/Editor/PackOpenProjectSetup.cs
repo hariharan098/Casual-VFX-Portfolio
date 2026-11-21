@@ -36,10 +36,10 @@ namespace PackOpen.Editor
             SetupRenderPipeline();
             SetupPlayerSettings();
             var pool = CreateCards();
-            var green = CreatePack("green", "Green Pack", 2, PackVariant.Burst, new[] { 70f, 25f, 5f }, pool);
-            var blue = CreatePack("blue", "Blue Pack", 3, PackVariant.TearDrop, new[] { 45f, 40f, 15f }, pool);
+            RemoveOldAssets();
+            var blue = CreatePack("blue", "Blue Pack", 3, new[] { 45f, 40f, 15f }, pool);
             WireArt();
-            CreateScene(green, blue);
+            CreateScene(blue);
             AssetDatabase.SaveAssets();
             Debug.Log("[PackOpen] Setup complete.");
         }
@@ -56,7 +56,7 @@ namespace PackOpen.Editor
                 card.face = LoadSprite($"card_{c.id}");
                 EditorUtility.SetDirty(card);
             }
-            foreach (var pid in new[] { "green", "blue" })
+            foreach (var pid in new[] { "blue" })
             {
                 var pack = AssetDatabase.LoadAssetAtPath<PackData>($"{Data}/Packs/Pack_{pid}.asset");
                 if (pack == null) continue;
@@ -104,6 +104,11 @@ namespace PackOpen.Editor
             PlayerSettings.defaultScreenHeight = 960;
         }
 
+        static void RemoveOldAssets()
+        {
+            AssetDatabase.DeleteAsset($"{Data}/Packs/Pack_green.asset");
+        }
+
         static List<CardData> CreateCards()
         {
             var list = new List<CardData>();
@@ -123,7 +128,7 @@ namespace PackOpen.Editor
             return list;
         }
 
-        static PackData CreatePack(string id, string name, int count, PackVariant variant, float[] weights, List<CardData> pool)
+        static PackData CreatePack(string id, string name, int count, float[] weights, List<CardData> pool)
         {
             string path = $"{Data}/Packs/Pack_{id}.asset";
             var pack = AssetDatabase.LoadAssetAtPath<PackData>(path);
@@ -132,14 +137,14 @@ namespace PackOpen.Editor
                 pack = ScriptableObject.CreateInstance<PackData>();
                 AssetDatabase.CreateAsset(pack, path);
             }
-            pack.id = id; pack.displayName = name; pack.cardCount = count; pack.openVariant = variant;
+            pack.id = id; pack.displayName = name; pack.cardCount = count;
             pack.rarityWeights = weights; pack.pool = new List<CardData>(pool);
             EditorUtility.SetDirty(pack);
             return pack;
         }
 
         // ---------------- Scene ----------------
-        static void CreateScene(PackData green, PackData blue)
+        static void CreateScene(PackData blue)
         {
             var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
 
@@ -174,14 +179,13 @@ namespace PackOpen.Editor
             bg.color = new Color(0.16f, 0.18f, 0.3f);
             bg.raycastTarget = false;
 
-            var greenTile = NewTile("Tile_Green", track, new Vector2(-230, 300), green, new Color(0.35f, 0.75f, 0.35f), "Green Pack\n(2 cards)");
-            var blueTile = NewTile("Tile_Blue", track, new Vector2(230, 300), blue, new Color(0.3f, 0.5f, 0.9f), "Blue Pack\n(3 cards)");
+            var blueTile = NewTile("Tile_Pack", track, new Vector2(0, 300), blue, new Color(0.3f, 0.5f, 0.9f), "Tap to\nOpen Pack");
 
-            var tab = NewRect("CollectionTab", track, new Vector2(0, -820), new Vector2(260, 140));
-            var tabImg = tab.gameObject.AddComponent<Image>();
-            tabImg.color = new Color(0.9f, 0.7f, 0.2f);
-            tabImg.raycastTarget = false;
-            AddLabel(tab, "Collection");
+            var wallet = NewRect("Wallet", track, new Vector2(0, -820), new Vector2(260, 140));
+            var walletImg = wallet.gameObject.AddComponent<Image>();
+            walletImg.color = new Color(0.9f, 0.7f, 0.2f);
+            walletImg.raycastTarget = false;
+            AddLabel(wallet, "Wallet");
 
             // Anchors (empty transforms, yours to move)
             var anchorsRoot = NewRect("Anchors", canvasRt, Vector2.zero, Vector2.zero);
@@ -195,8 +199,8 @@ namespace PackOpen.Editor
                 NewRect("CardSlot_1", anchorsRoot, new Vector2(0, 50), Vector2.zero),
                 NewRect("CardSlot_2", anchorsRoot, new Vector2(320, 50), Vector2.zero),
             };
-            anchors.tabTarget = tab;
-            anchors.starTarget = NewRect("StarTarget", anchorsRoot, new Vector2(0, 800), Vector2.zero);
+            anchors.packExit = NewRect("PackExit", anchorsRoot, new Vector2(0, -1200), Vector2.zero);
+            anchors.walletTarget = wallet;
 
             // Sequence
             var seqGo = new GameObject("PackOpenSequence");
@@ -209,9 +213,13 @@ namespace PackOpen.Editor
             {
                 var child = new GameObject(id.ToString());
                 child.transform.SetParent(stagesGo.transform);
-                PackOpenStageBase stage = id == PackOpenStageId.TapToClaim
-                    ? (PackOpenStageBase)child.AddComponent<PlaceholderTapToClaimStage>()
-                    : child.AddComponent<PlaceholderStage>();
+                var stage = child.AddComponent<PlaceholderStage>();
+                if (id == PackOpenStageId.Hold)
+                {
+                    var so = new SerializedObject(stage);
+                    so.FindProperty("duration").floatValue = 0.8f;
+                    so.ApplyModifiedPropertiesWithoutUndo();
+                }
                 slots.Add(new PackOpenSequence.StageSlot { id = id, stage = stage });
             }
             seq.EditorSetup(anchors, tap, slots);
@@ -219,16 +227,10 @@ namespace PackOpen.Editor
             var dbg = seqGo.AddComponent<PackOpenDebugPanel>();
             var dso = new SerializedObject(dbg);
             dso.FindProperty("sequence").objectReferenceValue = seq;
-            dso.FindProperty("greenPack").objectReferenceValue = green;
-            dso.FindProperty("bluePack").objectReferenceValue = blue;
+            dso.FindProperty("pack").objectReferenceValue = blue;
             dso.ApplyModifiedPropertiesWithoutUndo();
 
-            foreach (var t in new[] { greenTile, blueTile })
-            {
-                var pt = t.GetComponent<PackTile>();
-                pt.sequence = seq;
-                pt.debugPanel = dbg;
-            }
+            blueTile.GetComponent<PackTile>().sequence = seq;
 
             EditorSceneManager.SaveScene(scene, ScenePath);
             EditorBuildSettings.scenes = new[] { new EditorBuildSettingsScene(ScenePath, true) };

@@ -24,7 +24,6 @@ namespace PackOpen
         [SerializeField] bool doubleTapToSkip;
         [SerializeField] bool logEvents = true;
 
-        public CollectionState Collection { get; } = new CollectionState();
         public bool IsRunning { get; private set; }
         public PackOpenStageId? CurrentStage { get; private set; }
         public PackData LastPack { get; private set; }
@@ -36,9 +35,7 @@ namespace PackOpen
         public event Action<PackOpenContext> Completed;
 
         PackOpenContext _ctx;
-        HashSet<string> _snapshotBefore;
         int _lastSeed;
-        CardData _lastForced;
         Transform _lastOrigin;
 
         void OnEnable()
@@ -62,40 +59,36 @@ namespace PackOpen
         }
 
         /// <summary>Start a new open. Ignored while a sequence is running.</summary>
-        public bool Begin(PackData pack, Transform origin = null, bool forceDuplicate = false)
+        public bool Begin(PackData pack, Transform origin = null)
         {
             if (IsRunning) return false;
-            CardData forced = null;
-            if (forceDuplicate && pack.pool.Count > 0)
+            if (pack == null)
             {
-                forced = pack.pool[UnityEngine.Random.Range(0, pack.pool.Count)];
-                Collection.Add(forced); // already owned, so the first card is a duplicate
+                Debug.LogError("[PackOpen] Begin called with no PackData. Assign the pack on the caller (debug panel / PackTile) or re-run PackOpen > Setup Project.", this);
+                return false;
             }
-            _snapshotBefore = Collection.Snapshot();
             _lastSeed = Environment.TickCount;
-            _lastForced = forced;
             _lastOrigin = origin;
             LastPack = pack;
-            StartRun(pack, origin, _lastSeed, forced);
+            StartRun(pack, origin, _lastSeed);
             return true;
         }
 
-        /// <summary>Replays the previous open with identical results (collection restored). Great for tuning.</summary>
+        /// <summary>Replays the previous open with identical cards. Great for tuning.</summary>
         public bool Replay()
         {
             if (IsRunning || LastPack == null) return false;
-            Collection.Restore(_snapshotBefore);
-            StartRun(LastPack, _lastOrigin, _lastSeed, _lastForced);
+            StartRun(LastPack, _lastOrigin, _lastSeed);
             return true;
         }
 
-        void StartRun(PackData pack, Transform origin, int seed, CardData forced)
+        void StartRun(PackData pack, Transform origin, int seed)
         {
             var rng = new System.Random(seed);
             _ctx = new PackOpenContext
             {
                 Pack = pack,
-                Results = PackRoller.Roll(pack, Collection, rng, forced),
+                Results = PackRoller.Roll(pack, rng),
                 Anchors = anchors,
                 Input = tapInput,
                 PackOrigin = origin != null ? origin : (anchors != null ? anchors.packOrigin : null)
@@ -108,14 +101,13 @@ namespace PackOpen
             IsRunning = true;
             try
             {
-                Log($"Begin pack={ctx.Pack.id} variant={ctx.Variant} cards={ctx.Results.Count}");
+                Log($"Begin pack={ctx.Pack.id} cards={ctx.Results.Count}");
                 foreach (var r in ctx.Results)
-                    Log($"  card {r.Card.displayName} rarity={r.Card.rarity} new={r.IsNew} stars={r.StarsFromDuplicate}");
+                    Log($"  card {r.Card.displayName} rarity={r.Card.rarity}");
                 Started?.Invoke(ctx);
 
                 foreach (PackOpenStageId id in Enum.GetValues(typeof(PackOpenStageId)))
                 {
-                    if (id == PackOpenStageId.DuplicateStars && !ctx.HasDuplicate) continue;
                     var stage = FindStage(id);
                     if (stage == null) { Debug.LogWarning($"[PackOpen] No stage assigned for {id}"); continue; }
 

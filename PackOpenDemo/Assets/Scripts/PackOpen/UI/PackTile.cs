@@ -8,12 +8,10 @@ namespace PackOpen
     {
         public PackData pack;
         public PackOpenSequence sequence;
-        public PackOpenDebugPanel debugPanel; // optional: honors the Force Duplicate toggle
 
         public void OnPointerClick(PointerEventData eventData)
         {
-            bool dup = debugPanel != null && debugPanel.ConsumeForceDuplicate();
-            sequence.Begin(pack, transform, dup);
+            sequence.Begin(pack, transform);
         }
     }
 }

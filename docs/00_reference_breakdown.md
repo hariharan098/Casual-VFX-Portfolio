@@ -55,3 +55,6 @@ Source: Refs/Screen Recording 2026-11-20 at 3.48.13 PM.gif (133 frames @100ms, ~
 - Duplicate reveal inline (does card show "Duplicate" tag?)
 - Set completion celebration and rewards
 - What stars are spent on
+
+
+> Flow update (Nov 21): demo now uses only the blue pack, no duplicates/NEW badge/tap-to-claim. Flow: PackAppear -> PackTear -> PackMoveDown -> CardsMoveOut -> CardsFlip -> Hold -> FlyToWallet. See `docs/ta_checklist.md`.

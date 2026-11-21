@@ -15,7 +15,7 @@ using UnityEngine;
 
 namespace PackOpen.Stages
 {
-    public class PackFlyInStage : PackOpenStageBase
+    public class PackAppearStage : PackOpenStageBase
     {
         [SerializeField] Transform pack; // your prefab instance
         public override IEnumerator Play(PackOpenContext ctx)
@@ -34,28 +34,26 @@ namespace PackOpen.Stages
 ## Contract
 - `IEnumerator Play(PackOpenContext ctx)`; finish with `yield break` or by running out of steps.
 - Honor `ctx.Skip`: jump to the end state and return.
-- Variant: `ctx.Variant` (`Burst` green 2 cards, `TearDrop` blue 3 cards).
-- Data: `ctx.Results[i].Card` (name, rarity, face sprite), `.IsNew`, `.StarsFromDuplicate`.
-- Anchors: `ctx.PackOrigin` (tapped tile), `ctx.Anchors.packCenter / cardSlots / tabTarget / starTarget`.
-- Wait for the player: `yield return ctx.WaitForTap();`
-- `DuplicateStars` only runs when at least one duplicate exists (`ctx.HasDuplicate`).
+- Data: `ctx.Results[i].Card` (name, rarity, face sprite), `ctx.Pack` (wrapper, tearStrip, cardBack sprites).
+- Anchors: `ctx.PackOrigin` (tapped tile), `ctx.Anchors.packCenter / packExit / cardSlots / walletTarget`.
+- Need a tap in a stage? `yield return ctx.WaitForTap();` (not used in the default flow).
 - Other listeners (audio, UI): subscribe to `PackOpenSequence.StageStarted / StageFinished / Completed`.
 
-## Stages (order = play order)
-- [ ] PackFlyIn: curve path, trail, scrim in
-- [ ] PackOpen: Burst (green) light rays and stars / TearDrop (blue) foil strip tear, drop, fire
-- [ ] CardsSpawn: stagger (~0.1s), card backs for blue
-- [ ] Reveal: flip via edge-on swap + rarity glow shader
-- [ ] NewBadge: pop with overshoot where `Results[i].IsNew`
-- [ ] TapToClaim: pulse prompt, then `ctx.WaitForTap()`
-- [ ] FlyToTab: staggered bezier + trail, tab bounce
-- [ ] DuplicateStars: star x `StarsFromDuplicate` flies to `starTarget`
+## Flow (order = play order)
+Tap tile -> PackAppear -> PackTear -> PackMoveDown -> CardsMoveOut -> CardsFlip -> Hold -> FlyToWallet.
+- [ ] PackAppear: pack enters the screen (curve path, trail, scrim in)
+- [ ] PackTear: foil strip tears off (`Pack.tearStrip`)
+- [ ] PackMoveDown: pack drops to `packExit`
+- [ ] CardsMoveOut: card backs come out one by one into `cardSlots` (stagger ~0.1s)
+- [ ] CardsFlip: flip via edge-on swap + rarity glow shader
+- [ ] Hold: short delay (placeholder default 0.8s; tweak on the `Hold` stage object)
+- [ ] FlyToWallet: staggered fly to `walletTarget`, trail, wallet bounce
 - [ ] Pack wrapper shader (quality pass)
 - [ ] Perf pass on device (draw calls, overdraw, particles, GC)
 
 ## Testing
 - Play `Assets/Scenes/PackOpenDemo.unity` in a 9:16 Game view. Tap a pack tile, or use the debug panel (backquote toggles it).
-- Debug panel: Open Green / Open Blue, Force duplicate, Replay last (same cards, handy for tuning timing), Reset collection, Skip.
-- Play Mode tests: Window > General > Test Runner > PlayMode (checks hook order with placeholders).
+- Debug panel: Open Pack, Replay last (same cards, handy for tuning timing), Skip.
+- Play Mode tests: Window > General > Test Runner > PlayMode (checks the 7 stages fire in order with placeholders).
 
 Timing notes vs the reference (`docs/00_reference_breakdown.md`): log tweaks here.

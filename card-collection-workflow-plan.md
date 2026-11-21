@@ -99,3 +99,6 @@ Order of effort, each with the AI helping on boilerplate only:
 
 
 > Update: theme is "Pocket Fantasy", engine Unity 6 URP, tweens via DOTween. Implemented scaffold lives in `PackOpenDemo/`; see `docs/ta_checklist.md`.
+
+
+> Flow update (Nov 21): demo now uses only the blue pack, no duplicates/NEW badge/tap-to-claim. Flow: PackAppear -> PackTear -> PackMoveDown -> CardsMoveOut -> CardsFlip -> Hold -> FlyToWallet. See `docs/ta_checklist.md`.

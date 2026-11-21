@@ -15,7 +15,6 @@ MonoBehaviour:
   id: blue
   displayName: Blue Pack
   cardCount: 3
-  openVariant: 1
   rarityWeights:
   - 45
   - 40

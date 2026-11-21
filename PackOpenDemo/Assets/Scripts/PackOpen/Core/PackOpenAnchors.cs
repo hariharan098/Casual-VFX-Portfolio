@@ -8,7 +8,7 @@ namespace PackOpen
         public Transform packOrigin;      // fallback when the tapped tile is not known
         public Transform packCenter;      // where the pack lands
         public Transform[] cardSlots;     // up to 3
-        public Transform tabTarget;       // Collection tab icon
-        public Transform starTarget;      // where duplicate stars fly to
+        public Transform packExit;        // where the pack drops to
+        public Transform walletTarget;    // Wallet icon the cards fly to
     }
 }

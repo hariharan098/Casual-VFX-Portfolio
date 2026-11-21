@@ -6,18 +6,9 @@ namespace PackOpen
     public class PackOpenDebugPanel : MonoBehaviour
     {
         [SerializeField] PackOpenSequence sequence;
-        [SerializeField] PackData greenPack;
-        [SerializeField] PackData bluePack;
+        [SerializeField] PackData pack;
 
-        bool _forceDuplicate;
         bool _visible = true;
-
-        public bool ConsumeForceDuplicate()
-        {
-            bool v = _forceDuplicate;
-            _forceDuplicate = false;
-            return v;
-        }
 
         void Update()
         {
@@ -29,15 +20,12 @@ namespace PackOpen
             if (!_visible || sequence == null) return;
             float s = Mathf.Max(1f, Screen.height / 900f);
             GUI.matrix = Matrix4x4.Scale(new Vector3(s, s, 1));
-            GUILayout.BeginArea(new Rect(8, 8, 190, 330), GUI.skin.box);
+            GUILayout.BeginArea(new Rect(8, 8, 190, 200), GUI.skin.box);
             GUILayout.Label("Pack Open Debug");
             GUILayout.Label("Stage: " + (sequence.CurrentStage?.ToString() ?? "idle"));
             GUI.enabled = !sequence.IsRunning;
-            if (GUILayout.Button("Open Green (2)")) sequence.Begin(greenPack, null, ConsumeForceDuplicate());
-            if (GUILayout.Button("Open Blue (3)")) sequence.Begin(bluePack, null, ConsumeForceDuplicate());
-            _forceDuplicate = GUILayout.Toggle(_forceDuplicate, "Force duplicate (next)");
+            if (GUILayout.Button("Open Pack")) sequence.Begin(pack);
             if (GUILayout.Button("Replay last")) sequence.Replay();
-            if (GUILayout.Button("Reset collection")) sequence.Collection.Clear();
             GUI.enabled = sequence.IsRunning;
             if (GUILayout.Button("Skip")) sequence.Skip();
             GUI.enabled = true;

@@ -39,10 +39,17 @@ namespace PackOpen.Stages
 - Need a tap in a stage? `yield return ctx.WaitForTap();` (not used in the default flow).
 - Other listeners (audio, UI): subscribe to `PackOpenSequence.StageStarted / StageFinished / Completed`.
 
+## Pack tear rig (done, tune to taste)
+- Art: `Assets/Art/Final/Pack/` (`pack_blue_full`, `pack_blue_open`, `pack_blue_strip`), rebuilt with `python3 tools/art/make_pack_blue.py`. All three share one crop, so the swap is seamless.
+- Shader: `Assets/Shaders/PackVertexAnim.shader` (`PackOpen/UI/PackVertexAnim`). Properties: `_Skew`, `_SkewY`, `_BendX`, `_BendY`, `_WaveAmpX/Y`, `_WaveFreq`, `_WavePhase`, `_PivotX/Y`. Offsets are in the Image's local pixels. Needs `UIMeshSubdivide` on the Image for bend and wave. Keep these sprites out of atlases.
+- Stages: `PackAppearStage`, `PackTearStage` (DOTween) share a `PackRig`. Every duration, angle and ease is an Inspector field; `PackTearStage.onTear` is the hook for your tear VFX.
+- Scene: `PackOpen > Setup Pack Rig` adds the rig and wires the two stages (safe to re-run, does not rebuild the scene).
+- DOTween: `PackOpen.Stages` references `DOTween.dll` directly (asmdef `precompiledReferences`). Skip DOTween's "Create ASMDEF" button, it would conflict. Only core DOTween is used (no UI module extensions).
+
 ## Flow (order = play order)
 Tap tile -> PackAppear -> PackTear -> PackMoveDown -> CardsMoveOut -> CardsFlip -> Hold -> FlyToWallet.
-- [ ] PackAppear: pack enters the screen (curve path, trail, scrim in)
-- [ ] PackTear: foil strip tears off (`Pack.tearStrip`)
+- [x] PackAppear: pack enters the screen (first pass, DOTween). TODO: trail, scrim in
+- [x] PackTear: wobble + squash + shader skew, swap, strip peel (first pass). TODO: tear VFX, timing vs reference
 - [ ] PackMoveDown: pack drops to `packExit`
 - [ ] CardsMoveOut: card backs come out one by one into `cardSlots` (stagger ~0.1s)
 - [ ] CardsFlip: flip via edge-on swap + rarity glow shader

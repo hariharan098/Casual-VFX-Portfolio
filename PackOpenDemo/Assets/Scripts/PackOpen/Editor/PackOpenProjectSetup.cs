@@ -41,6 +41,7 @@ namespace PackOpen.Editor
             WireArt();
             CreateScene(blue);
             AssetDatabase.SaveAssets();
+            PackRigSetup.Run();
             Debug.Log("[PackOpen] Setup complete.");
         }
 

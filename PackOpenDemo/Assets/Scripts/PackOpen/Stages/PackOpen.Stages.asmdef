@@ -2,5 +2,7 @@
     "name": "PackOpen.Stages",
     "rootNamespace": "PackOpen.Stages",
     "references": ["PackOpen.Runtime", "UnityEngine.UI"],
+    "overrideReferences": true,
+    "precompiledReferences": ["DOTween.dll"],
     "autoReferenced": true
 }

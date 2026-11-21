@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using NUnit.Framework;
+using PackOpen.Stages;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -37,6 +38,13 @@ namespace PackOpen.Tests
             };
             CollectionAssert.AreEqual(expected, order);
             Assert.AreEqual(3, ctx.Results.Count);
+
+            // Pack rig ends in the torn state: opened body shown, full pack and flown-off strip hidden.
+            var rig = Object.FindFirstObjectByType<PackRig>();
+            Assert.NotNull(rig, "PackRig missing: run PackOpen > Setup Pack Rig");
+            Assert.IsTrue(rig.bodyOpen.gameObject.activeSelf, "opened body should be visible");
+            Assert.IsFalse(rig.full.gameObject.activeSelf, "full pack should be swapped out");
+            Assert.IsFalse(rig.strip.gameObject.activeSelf, "strip should be hidden after flying off");
         }
     }
 }

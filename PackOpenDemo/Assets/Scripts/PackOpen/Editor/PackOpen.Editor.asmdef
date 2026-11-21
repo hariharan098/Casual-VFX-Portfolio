@@ -3,5 +3,7 @@
     "rootNamespace": "PackOpen.Editor",
     "references": ["PackOpen.Runtime", "PackOpen.Stages", "UnityEngine.UI", "Unity.RenderPipelines.Universal.Runtime", "Unity.RenderPipelines.Core.Runtime"],
     "includePlatforms": ["Editor"],
+    "overrideReferences": true,
+    "precompiledReferences": ["DOTween.dll"],
     "autoReferenced": false
 }

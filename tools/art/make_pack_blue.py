@@ -19,6 +19,7 @@ from PIL import Image, ImageDraw
 ROOT = Path(__file__).resolve().parents[2] / "PackOpenDemo"
 SRC = ROOT / "Assets/Art/Generated/pack_blue.png"
 OUT = ROOT / "Assets/Art/Final/Pack"
+CARD_BACK = ROOT / "Assets/Art/Final/Card/card_back.png"
 
 CROP = (80, 64, 940, 1460)     # whole pack (x0, y0, x1, y1) in source pixels
 CUT_Y = 200                    # base height of the tear, just under the ribbed foil band
@@ -37,22 +38,20 @@ def jagged_cut(width):
 
 
 def card_stack(size):
-    """Red card back with white border, drawn as if seen from the open top of the pack."""
+    """Top edge of the real card back (Art/Final/Card/card_back.png) peeking out of the open pack."""
     layer = Image.new("RGBA", size, (0, 0, 0, 0))
     d = ImageDraw.Draw(layer)
     x0, x1 = 128, 896
     top = STACK_TOP
-    d.rounded_rectangle([x0 - 3, top - 3, x1 + 3, top + 220], 14, fill=(18, 22, 70, 255))      # outline
-    d.rounded_rectangle([x0, top, x1, top + 220], 12, fill=(246, 246, 250, 255))               # white card border
-    red = Image.new("RGBA", (x1 - x0 - 20, 200), (0, 0, 0, 0))
-    rd = ImageDraw.Draw(red)
-    for y in range(red.height):
-        t = y / red.height
-        rd.line([(0, y), (red.width, y)], fill=(int(232 - 60 * t), int(52 - 24 * t), int(62 - 20 * t), 255))
-    mask = Image.new("L", red.size, 0)
-    ImageDraw.Draw(mask).rounded_rectangle([0, 0, red.width, red.height], 8, fill=255)
-    layer.paste(red, (x0 + 10, top + 10), mask)
-    d.line([(x0 + 18, top + 14), (x1 - 18, top + 14)], fill=(255, 150, 150, 255), width=3)   # top highlight
+    h = 220
+    d.rounded_rectangle([x0 - 3, top - 3, x1 + 3, top + h], 14, fill=(18, 22, 70, 255))      # outline
+    back = Image.open(CARD_BACK).convert("RGBA")
+    scale = (x1 - x0) / back.width
+    back = back.resize((x1 - x0, int(back.height * scale)), Image.LANCZOS).crop((0, 0, x1 - x0, h))
+    mask = Image.new("L", back.size, 0)
+    ImageDraw.Draw(mask).rounded_rectangle([0, 0, back.width - 1, back.height - 1], 12, fill=255)
+    mask = Image.fromarray((np.asarray(mask).astype(np.float32) * (np.asarray(back)[..., 3] / 255.0)).astype(np.uint8))
+    layer.paste(back, (x0, top), mask)
     return layer
 
 

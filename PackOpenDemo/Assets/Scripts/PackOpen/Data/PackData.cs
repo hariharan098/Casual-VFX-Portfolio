@@ -14,6 +14,10 @@ namespace PackOpen
         public Sprite wrapper;
         public Sprite tearStrip;
         public Sprite cardBack;
+        [Header("Pack prefab sprites (optional, swap to reskin the pack)")]
+        public Sprite packFull;
+        public Sprite packOpen;
+        public Sprite packStrip;
         public List<CardData> pool = new List<CardData>();
     }
 }

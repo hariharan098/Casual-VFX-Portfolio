@@ -15,4 +15,4 @@ MonoBehaviour:
   id: c02
   displayName: Potion Bottle
   rarity: 1
-  face: {fileID: 21300000, guid: 0f8a2e559328d4627a6aae2adf94d862, type: 3}
+  face: {fileID: 21300000, guid: dca441d5b440d4c0fb06815d65018ffa, type: 3}

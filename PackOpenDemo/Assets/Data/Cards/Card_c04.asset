@@ -15,4 +15,4 @@ MonoBehaviour:
   id: c04
   displayName: Lucky Acorn
   rarity: 1
-  face: {fileID: 21300000, guid: 998f9f5b5106f4c63b0e30873f9b0dc5, type: 3}
+  face: {fileID: 21300000, guid: f6d71526b530d42cf89c1a036b773068, type: 3}

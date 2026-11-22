@@ -15,4 +15,4 @@ MonoBehaviour:
   id: c12
   displayName: Starlight Unicorn
   rarity: 3
-  face: {fileID: 21300000, guid: 05852574cb9bf472db6bd8be2e431fd8, type: 3}
+  face: {fileID: 21300000, guid: 68bd88c5697a44ea884cef31aa8686a1, type: 3}

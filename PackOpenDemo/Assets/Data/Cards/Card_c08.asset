@@ -15,4 +15,4 @@ MonoBehaviour:
   id: c08
   displayName: Moon Lantern
   rarity: 2
-  face: {fileID: 21300000, guid: 2272fce34bd9244818ef891ab43a4479, type: 3}
+  face: {fileID: 21300000, guid: afff797a511cf439c9564c55dcd3089d, type: 3}

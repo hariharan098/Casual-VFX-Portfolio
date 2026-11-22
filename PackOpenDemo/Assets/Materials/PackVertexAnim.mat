@@ -29,10 +29,10 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _BendX: 0
+    - _BendX: -10.91
     - _BendY: 0
     - _ColorMask: 15
-    - _PivotX: 0.5
+    - _PivotX: 0
     - _PivotY: 0
     - _Skew: 0
     - _SkewY: 0
@@ -43,7 +43,7 @@ Material:
     - _StencilWriteMask: 255
     - _UseUIAlphaClip: 0
     - _WaveAmpX: 0
-    - _WaveAmpY: 0
+    - _WaveAmpY: 10.97
     - _WaveFreq: 2
     - _WavePhase: 0
     m_Colors:

@@ -50,13 +50,20 @@ namespace PackOpen.Stages
 Tap tile -> PackAppear -> PackTear -> PackMoveDown -> CardsMoveOut -> CardsFlip -> Hold -> FlyToWallet.
 - [x] PackAppear: pack enters the screen (first pass, DOTween). TODO: trail, scrim in
 - [x] PackTear: wobble + squash + shader skew, swap, strip peel (first pass). TODO: tear VFX, timing vs reference
-- [ ] PackMoveDown: pack drops to `packExit`
-- [ ] CardsMoveOut: card backs come out one by one into `cardSlots` (stagger ~0.1s)
-- [ ] CardsFlip: flip via edge-on swap + rarity glow shader
-- [ ] Hold: short delay (placeholder default 0.8s; tweak on the `Hold` stage object)
-- [ ] FlyToWallet: staggered fly to `walletTarget`, trail, wallet bounce
+- [x] PackMoveDown: hop then drop to `packExit` (first pass, DOTween)
+- [x] CardsMoveOut: face-down cards pop from behind the pack into `cardSlots`, overlapping (stagger 0.18s, travel 0.55s); pack sinks. TODO: opening fire/glow VFX
+- [x] CardsFlip: staggered edge-on flip, Back/Front toggled at the midpoint. TODO: rarity glow shader
+- [x] Hold: `HoldStage`, default 0.8s
+- [x] FlyToWallet: one by one, pull-back + curve + shrink + fade, wallet punch. TODO: trail VFX
 - [ ] Pack wrapper shader (quality pass)
 - [ ] Perf pass on device (draw calls, overdraw, particles, GC)
+
+## Prefabs
+Run `PackOpen > Setup Pack Rig` once; it creates (never overwrites) these and wires all stages:
+- `Assets/Prefabs/Card.prefab`: `Front` (ArtMask with Mask > Art, shared Frame, Stars, Name) and `Back`. `CardView.Bind/ShowBack/ShowFront`. All cards share one silhouette (`Art/Final/Card/card_mask.png`), so any art sprite fits. Card art = `CardData.face` (illustration + baked background, regenerate with `tools/art/make_card_art.py`).
+- `Assets/Prefabs/Pack_Blue.prefab`: the PackRig hierarchy. Swap `PackData.packFull / packOpen / packStrip` to reskin it (the layout stays).
+- `CardsRig` (scene object `Cards`, behind the pack in sibling order) holds the Card prefab reference and the spawned cards.
+- Tuning fields live on each stage component (stagger, travel time, eases, sink, flip time, fly time).
 
 ## Testing
 - Play `Assets/Scenes/PackOpenDemo.unity` in a 9:16 Game view. Tap a pack tile, or use the debug panel (backquote toggles it).

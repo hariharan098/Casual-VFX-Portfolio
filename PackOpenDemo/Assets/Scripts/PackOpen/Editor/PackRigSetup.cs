@@ -33,6 +33,7 @@ namespace PackOpen.Editor
         public static void Run()
         {
             AssetDatabase.Refresh();
+            PackOpenProjectSetup.WireArt();
 
             var shader = Shader.Find(ShaderName);
             var sFull = AssetDatabase.LoadAssetAtPath<Sprite>($"{ArtDir}/pack_blue_full.png");
@@ -63,11 +64,22 @@ namespace PackOpen.Editor
                 return;
             }
 
-            var rig = Object.FindFirstObjectByType<PackRig>();
-            if (rig == null) rig = BuildRig(canvas, anchors, mat, layout, sFull, sOpen, sStrip);
+            var rig = EnsurePackPrefab(canvas, anchors, mat, layout, sFull, sOpen, sStrip);
+            var cardPrefab = EnsureCardPrefab();
+            var cards = EnsureCardsRig(canvas, rig, cardPrefab);
+            if (anchors != null && anchors.packExit != null)
+            {
+                var exit = (RectTransform)anchors.packExit;
+                if (exit.anchoredPosition.y < -1000f) exit.anchoredPosition = new Vector2(0, -600f);
+            }
 
-            WireStage(seq, PackOpenStageId.PackAppear, typeof(PackAppearStage), rig);
-            WireStage(seq, PackOpenStageId.PackTear, typeof(PackTearStage), rig);
+            Wire(seq, PackOpenStageId.PackAppear, typeof(PackAppearStage), ("rig", rig));
+            Wire(seq, PackOpenStageId.PackTear, typeof(PackTearStage), ("rig", rig));
+            Wire(seq, PackOpenStageId.PackMoveDown, typeof(PackMoveDownStage), ("rig", rig));
+            Wire(seq, PackOpenStageId.CardsMoveOut, typeof(CardsMoveOutStage), ("rig", rig), ("cards", cards));
+            Wire(seq, PackOpenStageId.CardsFlip, typeof(CardsFlipStage), ("cards", cards));
+            Wire(seq, PackOpenStageId.Hold, typeof(HoldStage));
+            Wire(seq, PackOpenStageId.FlyToWallet, typeof(FlyToWalletStage), ("cards", cards));
 
             EditorSceneManager.MarkSceneDirty(scene);
             EditorSceneManager.SaveScene(scene);
@@ -131,7 +143,7 @@ namespace PackOpen.Editor
             rt.offsetMin = Vector2.zero; rt.offsetMax = Vector2.zero;
         }
 
-        static void WireStage(PackOpenSequence seq, PackOpenStageId id, System.Type stageType, PackRig rig)
+        static void Wire(PackOpenSequence seq, PackOpenStageId id, System.Type stageType, params (string field, Object value)[] fields)
         {
             var so = new SerializedObject(seq);
             var slots = so.FindProperty("slots");
@@ -156,11 +168,141 @@ namespace PackOpen.Editor
                 }
 
                 var tso = new SerializedObject(target);
-                tso.FindProperty("rig").objectReferenceValue = rig;
+                foreach (var (field, value) in fields)
+                    tso.FindProperty(field).objectReferenceValue = value;
                 tso.ApplyModifiedPropertiesWithoutUndo();
                 break;
             }
             so.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        // ---------------- prefabs ----------------
+
+        const string PrefabDir = "Assets/Prefabs";
+        const string PackPrefabPath = PrefabDir + "/Pack_Blue.prefab";
+        const string CardPrefabPath = PrefabDir + "/Card.prefab";
+        const string CardArtDir = "Assets/Art/Final/Card";
+
+        static PackRig EnsurePackPrefab(Canvas canvas, PackOpenAnchors anchors, Material mat, Layout l,
+                                        Sprite sFull, Sprite sOpen, Sprite sStrip)
+        {
+            Directory.CreateDirectory(PrefabDir);
+            var rig = Object.FindFirstObjectByType<PackRig>();
+            var existing = AssetDatabase.LoadAssetAtPath<GameObject>(PackPrefabPath);
+
+            if (rig == null)
+            {
+                if (existing != null)
+                {
+                    var inst = (GameObject)PrefabUtility.InstantiatePrefab(existing, canvas.transform);
+                    rig = inst.GetComponent<PackRig>();
+                    if (anchors != null && anchors.packCenter != null) rig.root.position = anchors.packCenter.position;
+                    return rig;
+                }
+                rig = BuildRig(canvas, anchors, mat, l, sFull, sOpen, sStrip);
+            }
+            if (existing == null && !PrefabUtility.IsPartOfPrefabInstance(rig.gameObject))
+                PrefabUtility.SaveAsPrefabAssetAndConnect(rig.gameObject, PackPrefabPath, InteractionMode.AutomatedAction);
+            return rig;
+        }
+
+        static CardView EnsureCardPrefab()
+        {
+            Directory.CreateDirectory(PrefabDir);
+            var existing = AssetDatabase.LoadAssetAtPath<GameObject>(CardPrefabPath);
+            if (existing != null) return existing.GetComponent<CardView>();
+
+            var frame = AssetDatabase.LoadAssetAtPath<Sprite>($"{CardArtDir}/card_frame_front.png");
+            var mask = AssetDatabase.LoadAssetAtPath<Sprite>($"{CardArtDir}/card_mask.png");
+            var back = AssetDatabase.LoadAssetAtPath<Sprite>($"{CardArtDir}/card_back.png");
+            var star = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Art/Generated/star.png");
+            if (frame == null || mask == null || back == null)
+            {
+                Debug.LogError("[PackOpen] Card art missing in Art/Final/Card (run tools/art/make_card_art.py).");
+                return null;
+            }
+
+            var go = new GameObject("Card", typeof(RectTransform), typeof(CanvasGroup));
+            var root = (RectTransform)go.transform;
+            root.sizeDelta = new Vector2(300, 450);
+            var view = go.AddComponent<CardView>();
+            view.root = root;
+
+            var front = Child("Front", root); Stretch(front);
+            var artMask = Child("ArtMask", front); Stretch(artMask);
+            var maskImg = artMask.gameObject.AddComponent<Image>();
+            maskImg.sprite = mask; maskImg.raycastTarget = false;
+            artMask.gameObject.AddComponent<Mask>().showMaskGraphic = false;
+            var art = Child("Art", artMask); Stretch(art);
+            var artImg = art.gameObject.AddComponent<Image>(); artImg.raycastTarget = false;
+            var fr = Child("Frame", front); Stretch(fr);
+            var frImg = fr.gameObject.AddComponent<Image>(); frImg.sprite = frame; frImg.raycastTarget = false;
+
+            var stars = Child("Stars", front);
+            stars.anchorMin = stars.anchorMax = new Vector2(0.5f, 0f);
+            stars.pivot = new Vector2(0.5f, 0.5f);
+            stars.anchoredPosition = new Vector2(0, 48);
+            stars.sizeDelta = new Vector2(200, 40);
+            var hlg = stars.gameObject.AddComponent<HorizontalLayoutGroup>();
+            hlg.childAlignment = TextAnchor.MiddleCenter; hlg.spacing = 6;
+            hlg.childControlWidth = hlg.childControlHeight = false;
+            hlg.childForceExpandWidth = hlg.childForceExpandHeight = false;
+            var starImgs = new Image[3];
+            for (int i = 0; i < 3; i++)
+            {
+                var s = Child("Star_" + i, stars);
+                s.sizeDelta = new Vector2(38, 38);
+                starImgs[i] = s.gameObject.AddComponent<Image>();
+                starImgs[i].sprite = star; starImgs[i].raycastTarget = false;
+            }
+
+            var nameRt = Child("Name", front);
+            nameRt.anchorMin = new Vector2(0, 1); nameRt.anchorMax = new Vector2(1, 1);
+            nameRt.pivot = new Vector2(0.5f, 1); nameRt.sizeDelta = new Vector2(-30, 48);
+            nameRt.anchoredPosition = new Vector2(0, -26);
+            var txt = nameRt.gameObject.AddComponent<Text>();
+            txt.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            txt.fontSize = 28; txt.fontStyle = FontStyle.Bold; txt.alignment = TextAnchor.MiddleCenter;
+            txt.color = Color.white; txt.raycastTarget = false; txt.text = "Card Name";
+            var ol = nameRt.gameObject.AddComponent<Outline>(); ol.effectColor = new Color(0.1f, 0.12f, 0.3f, 1f); ol.effectDistance = new Vector2(2, -2);
+
+            var backRt = Child("Back", root); Stretch(backRt);
+            var backImg = backRt.gameObject.AddComponent<Image>(); backImg.sprite = back; backImg.raycastTarget = false;
+
+            view.front = front.gameObject; view.back = backRt.gameObject;
+            view.art = artImg; view.backImage = backImg; view.stars = starImgs; view.nameLabel = txt;
+            view.ShowBack();
+
+            var prefab = PrefabUtility.SaveAsPrefabAsset(go, CardPrefabPath);
+            Object.DestroyImmediate(go);
+            return prefab.GetComponent<CardView>();
+        }
+
+        static CardsRig EnsureCardsRig(Canvas canvas, PackRig rig, CardView cardPrefab)
+        {
+            var cards = Object.FindFirstObjectByType<CardsRig>();
+            if (cards == null)
+            {
+                var go = new GameObject("Cards", typeof(RectTransform));
+                var rt = (RectTransform)go.transform;
+                rt.SetParent(canvas.transform, false);
+                rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
+                rt.sizeDelta = Vector2.zero;
+                cards = go.AddComponent<CardsRig>();
+                cards.container = rt;
+            }
+            // Cards sit behind the pack so they pop out from behind its top edge.
+            cards.container.SetSiblingIndex(Mathf.Max(0, rig.transform.GetSiblingIndex()));
+            if (cardPrefab != null) cards.cardPrefab = cardPrefab;
+            EditorUtility.SetDirty(cards);
+            return cards;
+        }
+
+        static RectTransform Child(string name, Transform parent)
+        {
+            var go = new GameObject(name, typeof(RectTransform));
+            go.transform.SetParent(parent, false);
+            return (RectTransform)go.transform;
         }
     }
 }

@@ -54,7 +54,7 @@ namespace PackOpen.Editor
             {
                 var card = AssetDatabase.LoadAssetAtPath<CardData>($"{Data}/Cards/Card_{c.id}.asset");
                 if (card == null) continue;
-                card.face = LoadSprite($"card_{c.id}");
+                card.face = AssetDatabase.LoadAssetAtPath<Sprite>($"Assets/Art/Final/Card/art_{c.id}.png") ?? LoadSprite($"card_{c.id}");
                 EditorUtility.SetDirty(card);
             }
             foreach (var pid in new[] { "blue" })
@@ -63,7 +63,10 @@ namespace PackOpen.Editor
                 if (pack == null) continue;
                 pack.wrapper = LoadSprite($"pack_{pid}");
                 pack.tearStrip = LoadSprite("foil_strip");
-                pack.cardBack = LoadSprite("card_back");
+                pack.cardBack = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Art/Final/Card/card_back.png") ?? LoadSprite("card_back");
+                pack.packFull = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Art/Final/Pack/pack_blue_full.png");
+                pack.packOpen = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Art/Final/Pack/pack_blue_open.png");
+                pack.packStrip = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Art/Final/Pack/pack_blue_strip.png");
                 EditorUtility.SetDirty(pack);
             }
             AssetDatabase.SaveAssets();

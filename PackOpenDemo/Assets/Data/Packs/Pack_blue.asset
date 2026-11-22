@@ -21,7 +21,10 @@ MonoBehaviour:
   - 15
   wrapper: {fileID: 21300000, guid: 437438ae683bd41f4918aa7874e3463a, type: 3}
   tearStrip: {fileID: 21300000, guid: 15707a8a748b7413c8a0dbd9dafa23a0, type: 3}
-  cardBack: {fileID: 21300000, guid: bb833fccba23649b2b1c5caf11691334, type: 3}
+  cardBack: {fileID: 21300000, guid: dd7c7ba69299a4502babd5c74f133f97, type: 3}
+  packFull: {fileID: 21300000, guid: 769a98337633a45a7add0e370475cec9, type: 3}
+  packOpen: {fileID: 21300000, guid: e970586a96b7f46d79e2b65aab424a58, type: 3}
+  packStrip: {fileID: 21300000, guid: 5118df7d7feae46fea14475e67f438df, type: 3}
   pool:
   - {fileID: 11400000, guid: eec4bbe2525fd408fa30e4d8e437d4ce, type: 2}
   - {fileID: 11400000, guid: be6818a42e90847fabbed2a5b7ac2025, type: 2}

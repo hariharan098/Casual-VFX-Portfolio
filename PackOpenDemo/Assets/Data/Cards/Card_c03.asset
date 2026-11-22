@@ -15,4 +15,4 @@ MonoBehaviour:
   id: c03
   displayName: Slime Buddy
   rarity: 1
-  face: {fileID: 21300000, guid: d7cb9e906237747cf92dc231044bae0c, type: 3}
+  face: {fileID: 21300000, guid: c156f754f6bfa47248d4d05b31fca6ce, type: 3}

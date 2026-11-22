@@ -15,4 +15,4 @@ MonoBehaviour:
   id: c09
   displayName: Golden Dragon
   rarity: 3
-  face: {fileID: 21300000, guid: 7faba3303894648829fa1aa73f7be49e, type: 3}
+  face: {fileID: 21300000, guid: c9c77d2c353ff49feb15019891206dcb, type: 3}

@@ -26,9 +26,28 @@ namespace PackOpen.Tests
             PackOpenContext ctx = null;
             seq.StageStarted += (id, c) => { order.Add(id); ctx = c; };
 
+            // Snapshots taken at stage boundaries.
+            int dealt = -1, dealtActive = -1, facesUp = -1;
+            seq.StageFinished += (id, c) =>
+            {
+                var cr = Object.FindFirstObjectByType<CardsRig>();
+                if (cr == null) return;
+                if (id == PackOpenStageId.CardsMoveOut)
+                {
+                    dealt = cr.Cards.Count;
+                    dealtActive = 0;
+                    foreach (var cv in cr.Cards) if (cv.gameObject.activeSelf) dealtActive++;
+                }
+                if (id == PackOpenStageId.CardsFlip)
+                {
+                    facesUp = 0;
+                    foreach (var cv in cr.Cards) if (cv.IsFront) facesUp++;
+                }
+            };
+
             Assert.IsTrue(seq.Begin(pack));
             float t = 0;
-            while (seq.IsRunning && t < 15f) { t += Time.deltaTime; yield return null; }
+            while (seq.IsRunning && t < 25f) { t += Time.deltaTime; yield return null; }
             Assert.IsFalse(seq.IsRunning, "sequence did not finish on its own");
 
             var expected = new List<PackOpenStageId>
@@ -38,6 +57,11 @@ namespace PackOpen.Tests
             };
             CollectionAssert.AreEqual(expected, order);
             Assert.AreEqual(3, ctx.Results.Count);
+            Assert.AreEqual(pack.cardCount, dealt, "one card per result should be spawned");
+            Assert.AreEqual(dealt, dealtActive, "all cards visible after CardsMoveOut");
+            Assert.AreEqual(dealt, facesUp, "all cards face-up after CardsFlip");
+            foreach (var cv in Object.FindFirstObjectByType<CardsRig>().Cards)
+                Assert.IsFalse(cv.gameObject.activeSelf, "cards should be gone after FlyToWallet");
 
             // Pack rig ends in the torn state: opened body shown, full pack and flown-off strip hidden.
             var rig = Object.FindFirstObjectByType<PackRig>();

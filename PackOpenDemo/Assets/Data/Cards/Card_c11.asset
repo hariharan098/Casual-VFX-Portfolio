@@ -15,4 +15,4 @@ MonoBehaviour:
   id: c11
   displayName: Phoenix Egg
   rarity: 3
-  face: {fileID: 21300000, guid: 589dc6bde96ab44188c8497b47c70823, type: 3}
+  face: {fileID: 21300000, guid: f67b72ef5c1a34a839decf5f60fe82cb, type: 3}

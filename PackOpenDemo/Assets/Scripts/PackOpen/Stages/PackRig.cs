@@ -40,6 +40,15 @@ namespace PackOpen.Stages
             HideAll();
         }
 
+        /// <summary>Swaps the three pack sprites from PackData (null entries keep the prefab's sprite).</summary>
+        public void Apply(PackData pack)
+        {
+            if (pack == null) return;
+            if (pack.packFull != null) full.sprite = pack.packFull;
+            if (pack.packOpen != null) bodyOpen.sprite = pack.packOpen;
+            if (pack.packStrip != null) strip.sprite = pack.packStrip;
+        }
+
         void OnDestroy() { DOTween.Kill(this); }
 
         static Material Instance(Image img)

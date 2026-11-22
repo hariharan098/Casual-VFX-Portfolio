@@ -15,4 +15,4 @@ MonoBehaviour:
   id: c01
   displayName: Mushroom Cottage
   rarity: 1
-  face: {fileID: 21300000, guid: fae273804aaef42c1a2b4a421fc4b96c, type: 3}
+  face: {fileID: 21300000, guid: d0dce33c2fc50452d918d4f81cc474b7, type: 3}

@@ -15,4 +15,4 @@ MonoBehaviour:
   id: c06
   displayName: Mimic Chest
   rarity: 2
-  face: {fileID: 21300000, guid: bdf3e3abab1eb446e88b0289fb626fc4, type: 3}
+  face: {fileID: 21300000, guid: 659139deb7bde4c3d8fa02b94a953123, type: 3}

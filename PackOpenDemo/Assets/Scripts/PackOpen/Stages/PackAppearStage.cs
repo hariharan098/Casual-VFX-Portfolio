@@ -18,6 +18,7 @@ namespace PackOpen.Stages
 
         public override IEnumerator Play(PackOpenContext ctx)
         {
+            rig.Apply(ctx.Pack);
             rig.ResetToFull();
             var root = rig.root;
             Vector3 to = ctx.Anchors != null && ctx.Anchors.packCenter != null ? ctx.Anchors.packCenter.position : root.position;

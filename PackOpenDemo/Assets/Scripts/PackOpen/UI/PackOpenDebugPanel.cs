@@ -8,7 +8,7 @@ namespace PackOpen
         [SerializeField] PackOpenSequence sequence;
         [SerializeField] PackData pack;
 
-        bool _visible = true;
+        bool _visible = false;
 
         void Update()
         {

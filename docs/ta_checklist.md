@@ -58,6 +58,12 @@ Tap tile -> PackAppear -> PackTear -> PackMoveDown -> CardsMoveOut -> CardsFlip 
 - [ ] Pack wrapper shader (quality pass)
 - [ ] Perf pass on device (draw calls, overdraw, particles, GC)
 
+## Scene layout
+`PackOpen > Clean Scene` (also run at the end of Setup Project; safe to rerun, keeps your edits):
+- `Canvas > Scrim` (dark, black at 0.75 alpha) / `Cards` / `PackRig` / `Anchors` (incl. empty `WalletTarget`) / `TapLayer` (full-screen tap area, `TapToOpen`) > `Label` ('Tap to Open', bottom).
+- The tap area is the whole screen. The label hides during a run and pulses again when it finishes; tap again for a new pack.
+- Debug panel starts hidden, backquote toggles it.
+
 ## Prefabs
 Run `PackOpen > Setup Pack Rig` once; it creates (never overwrites) these and wires all stages:
 - `Assets/Prefabs/Card.prefab`: `Front` (ArtMask with Mask > Art, shared Frame, Stars, Name) and `Back`. `CardView.Bind/ShowBack/ShowFront`. All cards share one silhouette (`Art/Final/Card/card_mask.png`), so any art sprite fits. Card art = `CardData.face` (illustration + baked background, regenerate with `tools/art/make_card_art.py`).

@@ -42,6 +42,7 @@ namespace PackOpen.Editor
             CreateScene(blue);
             AssetDatabase.SaveAssets();
             PackRigSetup.Run();
+            SceneCleanup.Run();
             Debug.Log("[PackOpen] Setup complete.");
         }
 
@@ -176,20 +177,15 @@ namespace PackOpen.Editor
             canvasGo.AddComponent<GraphicRaycaster>();
             var canvasRt = (RectTransform)canvasGo.transform;
 
-            // Placeholder track screen
-            var track = NewRect("TrackScreen", canvasRt, Vector2.zero, Vector2.zero);
+            // Scrim + wallet anchor (SceneCleanup finishes the UI layout: tap layer and label)
+            var track = NewRect("Scrim", canvasRt, Vector2.zero, Vector2.zero);
             Stretch(track);
             var bg = track.gameObject.AddComponent<Image>();
-            bg.color = new Color(0.16f, 0.18f, 0.3f);
+            bg.color = new Color(0f, 0f, 0f, 0.75f);
             bg.raycastTarget = false;
+            cam.backgroundColor = new Color(0.07f, 0.1f, 0.22f);
 
-            var blueTile = NewTile("Tile_Pack", track, new Vector2(0, 300), blue, new Color(0.3f, 0.5f, 0.9f), "Tap to\nOpen Pack");
-
-            var wallet = NewRect("Wallet", track, new Vector2(0, -820), new Vector2(260, 140));
-            var walletImg = wallet.gameObject.AddComponent<Image>();
-            walletImg.color = new Color(0.9f, 0.7f, 0.2f);
-            walletImg.raycastTarget = false;
-            AddLabel(wallet, "Wallet");
+            var wallet = NewRect("WalletTarget", canvasRt, new Vector2(0, -820), Vector2.zero);
 
             // Anchors (empty transforms, yours to move)
             var anchorsRoot = NewRect("Anchors", canvasRt, Vector2.zero, Vector2.zero);
@@ -234,36 +230,8 @@ namespace PackOpen.Editor
             dso.FindProperty("pack").objectReferenceValue = blue;
             dso.ApplyModifiedPropertiesWithoutUndo();
 
-            blueTile.GetComponent<PackTile>().sequence = seq;
-
             EditorSceneManager.SaveScene(scene, ScenePath);
             EditorBuildSettings.scenes = new[] { new EditorBuildSettingsScene(ScenePath, true) };
-        }
-
-        static RectTransform NewTile(string name, RectTransform parent, Vector2 pos, PackData pack, Color color, string label)
-        {
-            var rt = NewRect(name, parent, pos, new Vector2(380, 520));
-            var img = rt.gameObject.AddComponent<Image>();
-            img.color = color;
-            var tile = rt.gameObject.AddComponent<PackTile>();
-            tile.pack = pack;
-            AddLabel(rt, label);
-            return rt;
-        }
-
-        static void AddLabel(RectTransform parent, string text)
-        {
-            var go = new GameObject("Label", typeof(RectTransform));
-            var rt = (RectTransform)go.transform;
-            rt.SetParent(parent, false);
-            Stretch(rt);
-            var t = go.AddComponent<Text>();
-            t.text = text;
-            t.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            t.fontSize = 44;
-            t.alignment = TextAnchor.MiddleCenter;
-            t.color = Color.white;
-            t.raycastTarget = false;
         }
 
         static RectTransform NewRect(string name, Transform parent, Vector2 pos, Vector2 size)

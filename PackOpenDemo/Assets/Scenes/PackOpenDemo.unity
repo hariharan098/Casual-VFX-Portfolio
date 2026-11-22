@@ -1221,6 +1221,7 @@ MonoBehaviour:
   rig: {fileID: 501232580}
   idleVfx: {fileID: 66141651}
   idleOffset: {x: 0, y: 0}
+  idleStopTime: 0.5
   enterFromSide: 1
   sideOffset: {x: 700, y: -500}
   flyTime: 0.45
@@ -1960,7 +1961,7 @@ MonoBehaviour:
     m_Bits: 1
   m_VolumeTrigger: {fileID: 0}
   m_VolumeFrameworkUpdateModeOption: 2
-  m_RenderPostProcessing: 0
+  m_RenderPostProcessing: 1
   m_Antialiasing: 0
   m_AntialiasingQuality: 2
   m_StopNaN: 0

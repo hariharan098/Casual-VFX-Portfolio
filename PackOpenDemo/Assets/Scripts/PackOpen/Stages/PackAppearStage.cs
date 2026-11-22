@@ -13,6 +13,8 @@ namespace PackOpen.Stages
         [SerializeField] PackRig rig;
         [SerializeField] UiVfx idleVfx;
         [SerializeField] Vector2 idleOffset;
+        [Tooltip("Seconds after the stage starts when the Idle VFX is switched off. Negative = leave it running (PackTear stops it).")]
+        [SerializeField] float idleStopTime = -1f;
 
         [Header("Entry")]
         [Tooltip("On: start at 'sideOffset' from the centre. Off: start at the tapped tile / PackOrigin (old behaviour).")]
@@ -78,6 +80,9 @@ namespace PackOpen.Stages
             seq.Insert(t0 + B * 0.8f, CardsRig.Scale(root, small, s0, B * 0.2f).SetEase(Ease.OutBack));
             seq.Insert(t0 + B * 0.2f, DOTween.To(k => { var p = root.position; p.y = Mathf.LerpUnclamped(to.y, to.y + hop, k); root.position = p; }, 0f, 1f, B * 0.3f).SetEase(Ease.OutQuad));
             seq.Insert(t0 + B * 0.5f, DOTween.To(k => { var p = root.position; p.y = Mathf.LerpUnclamped(to.y + hop, to.y, k); root.position = p; }, 0f, 1f, B * 0.3f).SetEase(Ease.InQuad));
+
+            if (idleVfx != null && idleStopTime >= 0f)
+                seq.InsertCallback(Mathf.Min(idleStopTime, seq.Duration()), () => idleVfx.Stop());
 
             yield return PackRig.Await(seq, ctx);
             root.position = to;

@@ -1,6 +1,7 @@
 Shader "ZGUI/Particles/Additive" {
 Properties {
-	_TintColor ("Tint Color", Color) = (0.5,0.5,0.5,0.5)
+	[HDR] _TintColor ("Tint Color (HDR)", Color) = (0.5,0.5,0.5,0.5)
+	_Intensity ("HDR Intensity", Range(0,20)) = 1.0
 	_MainTex ("Particle Texture", 2D) = "white" {}
 	_InvFade ("Soft Particles Factor", Range(0.01,3.0)) = 1.0
 
@@ -47,17 +48,18 @@ Category {
                 #pragma multi_compile __ UNITY_UI_ALPHACLIP
 
 			sampler2D _MainTex;
-			fixed4 _TintColor;
+			float4 _TintColor;
+			float _Intensity;
 			
 			struct appdata_t {
 				float4 vertex : POSITION;
-				fixed4 color : COLOR;
+				float4 color : COLOR;
 				float2 texcoord : TEXCOORD0;
 			};
 
 			struct v2f {
 				float4 vertex : SV_POSITION;
-				fixed4 color : COLOR;
+				float4 color : COLOR;
 				float2 texcoord : TEXCOORD0;
 				UNITY_FOG_COORDS(1)
 				#ifdef SOFTPARTICLES_ON
@@ -84,7 +86,7 @@ Category {
 			sampler2D_float _CameraDepthTexture;
 			float _InvFade;
 			
-			fixed4 frag (v2f IN) : SV_Target
+			float4 frag (v2f IN) : SV_Target
 			{
 				#ifdef SOFTPARTICLES_ON
 				float sceneZ = LinearEyeDepth (SAMPLE_DEPTH_TEXTURE_PROJ(_CameraDepthTexture, UNITY_PROJ_COORD(IN.projPos)));
@@ -93,8 +95,10 @@ Category {
 				IN.color.a *= fade;
 				#endif
 				
-				fixed4 col = 2.0f * IN.color * _TintColor * tex2D(_MainTex, IN.texcoord);
-				UNITY_APPLY_FOG_COLOR(IN.fogCoord, col, fixed4(0,0,0,0)); // fog towards black due to our blend mode
+				// float precision + no saturate: values above 1 survive into the HDR buffer so Bloom can pick them up
+				float4 col = 2.0f * IN.color * _TintColor * tex2D(_MainTex, IN.texcoord);
+				col.rgb *= _Intensity;
+				UNITY_APPLY_FOG_COLOR(IN.fogCoord, col, float4(0,0,0,0)); // fog towards black due to our blend mode
 				return col;
 			}
 			ENDCG 

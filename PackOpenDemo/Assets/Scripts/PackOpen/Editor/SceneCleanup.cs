@@ -12,12 +12,24 @@ namespace PackOpen.Editor
     public static class SceneCleanup
     {
         const string ScenePath = "Assets/Scenes/PackOpenDemo.unity";
+        const float LabelAnchorY = 0.115f;
         const string PackPath = "Assets/Data/Packs/Pack_blue.asset";
 
+        /// <summary>Orthographic size that makes the canvas 100 px per world unit (1920 / 100 / 2).</summary>
+        public const float CameraSize = 9.6f;
+
         [MenuItem("PackOpen/Clean Scene")]
-        public static void Run()
+        public static void Run() { Apply(false); }
+
+        /// <summary>Same as Run but also saves the scene (used by Setup Project and batch tools).</summary>
+        public static void RunAndSave() { Apply(true); }
+
+        static void Apply(bool save)
         {
-            var scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
+            // Use the scene that is already open so unsaved edits (VFX placements etc.) are kept.
+            var scene = EditorSceneManager.GetActiveScene();
+            if (scene.path != ScenePath || !scene.isLoaded)
+                scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
             var canvas = Object.FindFirstObjectByType<Canvas>();
             var seq = Object.FindFirstObjectByType<PackOpenSequence>();
             var anchors = Object.FindFirstObjectByType<PackOpenAnchors>();
@@ -60,7 +72,12 @@ namespace PackOpen.Editor
             scrimRt.SetAsFirstSibling();
 
             var cam = canvas.worldCamera != null ? canvas.worldCamera : Camera.main;
-            if (cam != null) cam.backgroundColor = new Color(0.07f, 0.1f, 0.22f);
+            if (cam != null)
+            {
+                cam.backgroundColor = new Color(0.07f, 0.1f, 0.22f);
+                // only touch the size while it is still the Unity default, so hand-tuned values survive reruns
+                if (cam.orthographic && Mathf.Approximately(cam.orthographicSize, 5f)) cam.orthographicSize = CameraSize;
+            }
 
             // tap layer + label
             var layerRt = FindChild(canvasRt, "TapLayer") != null ? FindChild(canvasRt, "TapLayer") : NewRect("TapLayer", canvasRt);
@@ -73,9 +90,9 @@ namespace PackOpen.Editor
             if (labelRt == null)
             {
                 labelRt = NewRect("Label", layerRt);
-                labelRt.anchorMin = labelRt.anchorMax = new Vector2(0.5f, 0f);
+                labelRt.anchorMin = labelRt.anchorMax = new Vector2(0.5f, LabelAnchorY);
                 labelRt.pivot = new Vector2(0.5f, 0.5f);
-                labelRt.anchoredPosition = new Vector2(0, 220);
+                labelRt.anchoredPosition = Vector2.zero;
                 labelRt.sizeDelta = new Vector2(700, 90);
                 var t = labelRt.gameObject.AddComponent<Text>();
                 t.text = "Tap to Open";
@@ -98,8 +115,8 @@ namespace PackOpen.Editor
             EditorUtility.SetDirty(tap);
 
             EditorSceneManager.MarkSceneDirty(scene);
-            EditorSceneManager.SaveScene(scene);
-            Debug.Log("[PackOpen] Scene cleaned: scrim, tap-anywhere layer, bottom label.");
+            if (save) EditorSceneManager.SaveScene(scene);
+            Debug.Log("[PackOpen] Scene cleaned: scrim, tap-anywhere layer, bottom label." + (save ? " (saved)" : " Save the scene (Cmd+S) to keep it."));
         }
 
         static T GetOrAdd<T>(Component c) where T : Component

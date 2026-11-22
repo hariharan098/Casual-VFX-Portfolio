@@ -25,6 +25,9 @@ namespace PackOpen.Stages
         [SerializeField] Ease yEase = Ease.OutBack;
         [SerializeField] Ease scaleEase = Ease.OutBack;
 
+        [Tooltip("Card spacing in canvas pixels, used only when the scene has fewer CardSlot anchors than cards.")]
+        [SerializeField] float fallbackSpacing = 320f;
+
         [Header("Pack sink")]
         [SerializeField] float sinkDelay = 0.25f;
         [SerializeField] float sinkTime = 0.5f;
@@ -95,8 +98,8 @@ namespace PackOpen.Stages
             var slot = ctx.CardSlot(i);
             if (slot != null) return slot.position;
             // fallback if the scene has fewer slots: spread around the pack centre
-            var c = cards.container.position;
-            return c + new Vector3((i - (n - 1) * 0.5f) * 0.3f, 0, 0);
+            // canvas-local spacing converted to world, so it follows any camera size
+            return cards.container.TransformPoint(new Vector3((i - (n - 1) * 0.5f) * fallbackSpacing, 0f, 0f));
         }
     }
 }

@@ -42,7 +42,7 @@ namespace PackOpen.Editor
             CreateScene(blue);
             AssetDatabase.SaveAssets();
             PackRigSetup.Run();
-            SceneCleanup.Run();
+            SceneCleanup.RunAndSave();
             Debug.Log("[PackOpen] Setup complete.");
         }
 
@@ -158,6 +158,7 @@ namespace PackOpen.Editor
             cam.clearFlags = CameraClearFlags.SolidColor;
             cam.backgroundColor = new Color(0.1f, 0.1f, 0.16f);
             cam.orthographic = true;
+            cam.orthographicSize = SceneCleanup.CameraSize;
             camGo.transform.position = new Vector3(0, 0, -10);
             camGo.AddComponent<UniversalAdditionalCameraData>();
 

@@ -70,5 +70,28 @@ namespace PackOpen.Tests
             Assert.IsFalse(rig.full.gameObject.activeSelf, "full pack should be swapped out");
             Assert.IsFalse(rig.strip.gameObject.activeSelf, "strip should be hidden after flying off");
         }
+
+        [UnityTest]
+        public IEnumerator TapToOpen_StartsRun_AndLabelReturns()
+        {
+            yield return EditorSceneManager.LoadSceneAsyncInPlayMode(ScenePath, new LoadSceneParameters(LoadSceneMode.Single));
+            var tap = Object.FindFirstObjectByType<TapToOpen>();
+            Assert.NotNull(tap, "TapToOpen missing: run PackOpen > Clean Scene");
+            var seq = tap.sequence;
+            Assert.IsTrue(tap.IsIdle);
+            yield return null;
+            Assert.Greater(tap.label.alpha, 0.5f - 0.01f, "label visible while idle");
+
+            tap.OnPointerClick(new UnityEngine.EventSystems.PointerEventData(UnityEngine.EventSystems.EventSystem.current));
+            Assert.IsTrue(seq.IsRunning, "tap should start the run");
+            yield return null;
+            Assert.AreEqual(0f, tap.label.alpha, "label hidden during the run");
+
+            float t = 0;
+            while (seq.IsRunning && t < 25f) { t += Time.deltaTime; yield return null; }
+            Assert.IsFalse(seq.IsRunning);
+            yield return null;
+            Assert.Greater(tap.label.alpha, 0.5f, "label back after the run");
+        }
     }
 }

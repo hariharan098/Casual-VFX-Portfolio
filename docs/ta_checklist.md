@@ -64,6 +64,15 @@ Tap tile -> PackAppear -> PackTear -> PackMoveDown -> CardsMoveOut -> CardsFlip 
 - The tap area is the whole screen. The label hides during a run and pulses again when it finishes; tap again for a new pack.
 - Debug panel starts hidden, backquote toggles it.
 
+## Camera and VFX scale
+- Camera orthographic size is 9.6 (set by `Clean Scene` only while it is still 5, so your own value survives reruns). The canvas is then 100 px per world unit, matching how the VFX were authored. Tune the size by eye: bigger = smaller VFX relative to the UI.
+- `Clean Scene` works on the scene that is open (keeps unsaved edits) and does not save: press Cmd+S afterwards.
+- Spawn new VFX under the Canvas and position them from the anchors (`PackOrigin`, `CardSlot_i`, `PackCenter`, `WalletTarget`), never with hardcoded world units.
+- Particle systems with Scaling Mode = Local ignore parent scale; switch to Hierarchy before scaling a VFX parent.
+- Sorting: keep Canvas order 0 and give VFX renderers a higher order so they sit over the pack and cards.
+- Replays: stop or destroy VFX started from `onTear`, `onCardRevealed`, `onHoldStart`, `onCardArrived` when a new run starts.
+- `TapToOpen` reads `sequence.IsRunning`, so the label always returns; tick `skipOnTap` to let a tap skip a running sequence. The label uses a relative bottom anchor (y 0.115).
+
 ## Prefabs
 Run `PackOpen > Setup Pack Rig` once; it creates (never overwrites) these and wires all stages:
 - `Assets/Prefabs/Card.prefab`: `Front` (ArtMask with Mask > Art, shared Frame, Stars, Name) and `Back`. `CardView.Bind/ShowBack/ShowFront`. All cards share one silhouette (`Art/Final/Card/card_mask.png`), so any art sprite fits. Card art = `CardData.face` (illustration + baked background, regenerate with `tools/art/make_card_art.py`).

@@ -787,7 +787,7 @@ MonoBehaviour:
     m_FontStyle: 1
     m_BestFit: 0
     m_MinSize: 10
-    m_MaxSize: 40
+    m_MaxSize: 56
     m_Alignment: 4
     m_AlignByGeometry: 0
     m_RichText: 1
@@ -1231,6 +1231,7 @@ MonoBehaviour:
   sequence: {fileID: 248395125}
   origin: {fileID: 1981809696}
   label: {fileID: 605084760}
+  skipOnTap: 0
   pulseSpeed: 2.5
   pulseMin: 0.55
 --- !u!114 &1441445782
@@ -1388,6 +1389,7 @@ MonoBehaviour:
   xEase: 9
   yEase: 27
   scaleEase: 27
+  fallbackSpacing: 320
   sinkDelay: 0.25
   sinkTime: 0.5
   sinkDistance: 900
@@ -1554,7 +1556,7 @@ Camera:
   far clip plane: 1000
   field of view: 60
   orthographic: 1
-  orthographic size: 5
+  orthographic size: 9.6
   m_Depth: 0
   m_CullingMask:
     serializedVersion: 2

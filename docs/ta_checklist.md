@@ -99,3 +99,8 @@ Run `PackOpen > Setup Pack Rig` once; it creates (never overwrites) these and wi
 - Play Mode tests: Window > General > Test Runner > PlayMode (checks the 7 stages fire in order with placeholders).
 
 Timing notes vs the reference (`docs/00_reference_breakdown.md`): log tweaks here.
+
+## Pack entry (PackAppearStage)
+- Pack swings in from the right (`sideOffset` 700,-150 canvas px), tilted -50° and unwinding, overshoots the centre, then lands with a hop (`bounceHop`) and squash/stretch (`bounceSquash`).
+- `flyTime` + `bounceTime` set the total (~0.85 s). `enterFromSide` off = old behaviour from the tapped tile.
+- Preset is applied once by `PackOpen > Setup Pack Rig` (`tuningVersion`); later hand-tuning is kept. Save the scene afterward.

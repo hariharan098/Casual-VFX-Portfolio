@@ -55,6 +55,10 @@ namespace PackOpen.Tests
             float tearStart = -1f, tearEnd = -1f, earlyMax = 0f, maxDisp = 0f, swapTime = -1f;
             seq.StageStarted += (id, c) => { if (id == PackOpenStageId.PackTear) tearStart = Time.time; };
             seq.StageFinished += (id, c) => { if (id == PackOpenStageId.PackTear) tearEnd = Time.time; };
+            var centerAnchor = Object.FindFirstObjectByType<PackOpenAnchors>().packCenter;
+            float appearDist = 99f, appearRot = 99f, appearScale = 0f, appearStart = -1f, appearEnd = -1f, firstOffX = float.NaN, maxAboveY = 0f;
+            seq.StageStarted += (id, c) => { if (id == PackOpenStageId.PackAppear) appearStart = Time.time; };
+            seq.StageFinished += (id, c) => { if (id == PackOpenStageId.PackAppear) { appearEnd = Time.time; appearDist = Vector3.Distance(rigRef.root.position, centerAnchor.position); appearRot = rigRef.root.localEulerAngles.z; appearScale = rigRef.root.localScale.x / rigRef.BaseScale.x; } };
             bool idleSeen = false, fastSeen = false, idleDuringAppear = false;
 
             Assert.IsTrue(seq.Begin(pack));
@@ -63,7 +67,13 @@ namespace PackOpen.Tests
             {
                 t += Time.deltaTime;
                 idleSeen |= idle.IsActive; fastSeen |= fast.IsActive;
-                if (seq.CurrentStage == PackOpenStageId.PackAppear) idleDuringAppear |= idle.IsActive;
+                if (seq.CurrentStage == PackOpenStageId.PackAppear)
+                {
+                    idleDuringAppear |= idle.IsActive;
+                    var local = rigRef.root.parent.InverseTransformVector(rigRef.root.position - centerAnchor.position);
+                    if (float.IsNaN(firstOffX)) firstOffX = local.x;
+                    maxAboveY = Mathf.Max(maxAboveY, local.y);
+                }
                 if (seq.CurrentStage == PackOpenStageId.PackTear && rigRef.strip.gameObject.activeSelf)
                 {
                     if (swapTime < 0f) swapTime = Time.time;
@@ -73,6 +83,12 @@ namespace PackOpen.Tests
                 }
                 yield return null;
             }
+            Assert.Greater(firstOffX, 500f, "pack should start well to the right of the centre");
+            Assert.That(appearEnd - appearStart, Is.InRange(0.6f, 1.5f), "entry + bounce");
+            Assert.Greater(maxAboveY, 5f, "pack should overshoot or hop above the centre");
+            Assert.Less(appearDist, 0.05f, "pack should land on PackCenter");
+            Assert.That(Mathf.Abs(Mathf.DeltaAngle(appearRot, 0f)), Is.LessThan(0.01f), "pack should land upright");
+            Assert.AreEqual(1f, appearScale, 0.001f, "pack should land at base scale");
             Assert.That(tearEnd - tearStart, Is.InRange(1.0f, 3.0f), "tear: lean + peel + throw");
             Assert.Less(earlyMax, 150f, "strip should build up slowly in the first 0.3s after the swap");
             Assert.Greater(maxDisp, 1000f, "strip should be thrown far off screen");

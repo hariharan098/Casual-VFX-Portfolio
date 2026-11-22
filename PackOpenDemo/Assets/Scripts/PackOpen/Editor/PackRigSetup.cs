@@ -87,6 +87,7 @@ namespace PackOpen.Editor
 
             Wire(seq, PackOpenStageId.PackAppear, typeof(PackAppearStage), ("rig", rig), ("idleVfx", idleVfx));
             Wire(seq, PackOpenStageId.PackTear, typeof(PackTearStage), ("rig", rig), ("idleVfx", idleVfx), ("tearVfx", tearVfx));
+            MigrateAppear(seq);
             MigrateTear(seq);
             Wire(seq, PackOpenStageId.PackMoveDown, typeof(PackMoveDownStage), ("rig", rig));
             Wire(seq, PackOpenStageId.CardsMoveOut, typeof(CardsMoveOutStage), ("rig", rig), ("cards", cards));
@@ -309,6 +310,29 @@ namespace PackOpen.Editor
             if (cardPrefab != null) cards.cardPrefab = cardPrefab;
             EditorUtility.SetDirty(cards);
             return cards;
+        }
+
+        const int AppearTuningVersion = 2;
+
+        /// <summary>Applies the side-entry + bounce preset (reference frames 59-67) once, then marks the component.</summary>
+        static void MigrateAppear(PackOpenSequence seq)
+        {
+            var appear = seq.GetComponentInChildren<PackAppearStage>(true);
+            if (appear == null) return;
+            var so = new SerializedObject(appear);
+            var version = so.FindProperty("tuningVersion");
+            if (version.intValue >= AppearTuningVersion) return;
+
+            void F(string n, float v) { var p = so.FindProperty(n); if (p != null) p.floatValue = v; }
+            void E(string n, Ease v) { var p = so.FindProperty(n); if (p != null) p.enumValueIndex = System.Array.IndexOf(p.enumNames, v.ToString()); }
+
+            so.FindProperty("enterFromSide").boolValue = true;
+            so.FindProperty("sideOffset").vector2Value = new Vector2(700f, -150f);
+            F("flyTime", 0.45f); F("startScale", 0.55f); F("startTilt", -50f);
+            E("xEase", Ease.OutCubic); E("yEase", Ease.OutBack); E("scaleEase", Ease.OutBack); E("tiltEase", Ease.OutBack);
+            F("bounceTime", 0.4f); F("bounceHop", 28f); F("bounceSquash", 0.08f);
+            version.intValue = AppearTuningVersion;
+            so.ApplyModifiedPropertiesWithoutUndo();
         }
 
         const int TearTuningVersion = 2;

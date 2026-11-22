@@ -152,9 +152,9 @@ RectTransform:
   m_Children:
   - {fileID: 2023131058}
   - {fileID: 1644194360}
+  - {fileID: 2098270447}
   - {fileID: 501232579}
   - {fileID: 215723378}
-  - {fileID: 2098270447}
   - {fileID: 1441445780}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -1079,7 +1079,7 @@ MonoBehaviour:
   vfxStopTime: 1.2
   vfxPopTime: 0.25
   vfxPopFrom: 0.6
-  vfxFadeFraction: 0.237
+  vfxLingerTime: 0.25
   vfxDetachOnThrow: 0
   wobbleTime: 0.45
   wobbleAngle: 4
@@ -1158,13 +1158,19 @@ MonoBehaviour:
   rig: {fileID: 501232580}
   idleVfx: {fileID: 1183327838}
   idleOffset: {x: 0, y: 0}
-  duration: 0.6
-  startScale: 0.35
-  startTilt: -25
-  xEase: 6
+  enterFromSide: 1
+  sideOffset: {x: 700, y: -500}
+  flyTime: 0.45
+  startScale: 0.55
+  startTilt: -50
+  xEase: 9
   yEase: 27
   scaleEase: 27
   tiltEase: 27
+  bounceTime: 0.3
+  bounceHop: 30
+  bounceSquash: 0.0299
+  tuningVersion: 2
 --- !u!1 &1026944796
 GameObject:
   m_ObjectHideFlags: 0

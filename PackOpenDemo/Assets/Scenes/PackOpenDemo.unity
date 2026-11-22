@@ -153,6 +153,7 @@ RectTransform:
   - {fileID: 2023131058}
   - {fileID: 1644194360}
   - {fileID: 2098270447}
+  - {fileID: 816037615}
   - {fileID: 501232579}
   - {fileID: 215723378}
   - {fileID: 1441445780}
@@ -261,6 +262,29 @@ RectTransform:
   m_AnchoredPosition: {x: -320, y: 50}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!1 &66141649 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 2852582385665641912, guid: 34fa9ae64a2c74aaca96f55279557fe6, type: 3}
+  m_PrefabInstance: {fileID: 1234915531}
+  m_PrefabAsset: {fileID: 0}
+--- !u!224 &66141650 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 5783355989283475408, guid: 34fa9ae64a2c74aaca96f55279557fe6, type: 3}
+  m_PrefabInstance: {fileID: 1234915531}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &66141651
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 66141649}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6098a320624ec4a8db6f0e763470d110, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: PackOpen.Runtime::PackOpen.UiVfx
+  scaleMultiplier: 1
 --- !u!1 &178674195
 GameObject:
   m_ObjectHideFlags: 0
@@ -357,7 +381,6 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 1183327836}
   - {fileID: 567876954}
   m_Father: {fileID: 18620835}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -668,6 +691,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 399659024223396804, guid: b177be8216af34bed969be63a16c8a38, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5325911367062895511, guid: b177be8216af34bed969be63a16c8a38, type: 3}
+      propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6956386483945885382, guid: b177be8216af34bed969be63a16c8a38, type: 3}
@@ -1027,6 +1054,42 @@ MonoBehaviour:
   onCardArrived:
     m_PersistentCalls:
       m_Calls: []
+--- !u!1 &816037614
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 816037615}
+  m_Layer: 0
+  m_Name: VFX_Back
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &816037615
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 816037614}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 66141650}
+  m_Father: {fileID: 18620835}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &920752339
 GameObject:
   m_ObjectHideFlags: 0
@@ -1072,7 +1135,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: PackOpen.Stages::PackOpen.Stages.PackTearStage
   rig: {fileID: 501232580}
-  idleVfx: {fileID: 1183327838}
+  idleVfx: {fileID: 0}
   tearVfx: {fileID: 567876956}
   tearOffset: {x: 180, y: -30}
   idleStopLead: 0.3
@@ -1093,20 +1156,20 @@ MonoBehaviour:
       m_Calls: []
   pullAngle: 15
   recoilTime: 0.4
-  ripTime: 0.7
-  ripFraction: 0.2
+  ripTime: 0.2
+  ripFraction: 0.242
   ripLift: 30
-  ripRotation: 25
-  ripCurl: 110
+  ripRotation: 40
+  ripCurl: 200
   ripXEase: 5
   ripYEase: 4
   ripRotEase: 5
-  liftTime: 0.4
+  liftTime: 0.2
   flyOffset: {x: -1500, y: 200}
   flyRotation: 75
-  curl: 180
+  curl: 100
   flutterAmp: 40
-  flutterTravel: 2.2
+  flutterTravel: 1
   liftXEase: 5
   liftYEase: 8
   stripFadeFraction: 0.15
@@ -1156,7 +1219,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: PackOpen.Stages::PackOpen.Stages.PackAppearStage
   rig: {fileID: 501232580}
-  idleVfx: {fileID: 1183327838}
+  idleVfx: {fileID: 66141651}
   idleOffset: {x: 0, y: 0}
   enterFromSide: 1
   sideOffset: {x: 700, y: -500}
@@ -1291,13 +1354,13 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: -820}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!1001 &1183327835
+--- !u!1001 &1234915531
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Modification:
     serializedVersion: 3
-    m_TransformParent: {fileID: 215723378}
+    m_TransformParent: {fileID: 816037615}
     m_Modifications:
     - target: {fileID: 2852582385665641912, guid: 34fa9ae64a2c74aaca96f55279557fe6, type: 3}
       propertyPath: m_Name
@@ -1393,31 +1456,8 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 2852582385665641912, guid: 34fa9ae64a2c74aaca96f55279557fe6, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 1183327838}
+      addedObject: {fileID: 66141651}
   m_SourcePrefab: {fileID: 100100000, guid: 34fa9ae64a2c74aaca96f55279557fe6, type: 3}
---- !u!224 &1183327836 stripped
-RectTransform:
-  m_CorrespondingSourceObject: {fileID: 5783355989283475408, guid: 34fa9ae64a2c74aaca96f55279557fe6, type: 3}
-  m_PrefabInstance: {fileID: 1183327835}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &1183327837 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 2852582385665641912, guid: 34fa9ae64a2c74aaca96f55279557fe6, type: 3}
-  m_PrefabInstance: {fileID: 1183327835}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &1183327838
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1183327837}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6098a320624ec4a8db6f0e763470d110, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: PackOpen.Runtime::PackOpen.UiVfx
-  scaleMultiplier: 1
 --- !u!1 &1282884751
 GameObject:
   m_ObjectHideFlags: 0

@@ -73,6 +73,10 @@ Tap tile -> PackAppear -> PackTear -> PackMoveDown -> CardsMoveOut -> CardsFlip 
 - Replays: stop or destroy VFX started from `onTear`, `onCardRevealed`, `onHoldStart`, `onCardArrived` when a new run starts.
 - `TapToOpen` reads `sequence.IsRunning`, so the label always returns; tick `skipOnTap` to let a tap skip a running sequence. The label uses a relative bottom anchor (y 0.115).
 
+## Tear timing (PackTear)
+Wobble 0.9s, then the strip flies in two phases: a lateral rip along the tear line (`ripTime` 0.6s, `ripFraction` 65% of the X distance, only `ripLift` px of rise, small rotation and curl), then lift-off (`liftTime` 0.8s, accelerates up and away, fades at the end). Total flight = `FlightTime`; the Fast VFX fade and stop use it. Tune on the `PackTear` component. `Setup Pack Rig` upgrades old default values in the scene but leaves values you changed.
+`Setup Pack Rig` now works on the open scene and does not save: press Cmd+S afterwards.
+
 ## Pack VFX hookup
 `PackOpen > Setup Pack Rig` creates `Canvas/VFX` (right after `PackRig`, under `TapLayer`) with scene instances of `VFX/Prefabs/Final/VFX_CardPack_Idle` and `VFX_CardPack_Fast`, each with a `UiVfx` component, and wires them to the stages.
 - Idle: starts when `PackAppear` starts, follows the pack position, winds down `idleStopLead` before the tear.

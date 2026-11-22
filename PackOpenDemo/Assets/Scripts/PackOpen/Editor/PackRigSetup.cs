@@ -30,7 +30,12 @@ namespace PackOpen.Editor
         }
 
         [MenuItem("PackOpen/Setup Pack Rig")]
-        public static void Run()
+        public static void Run() { Apply(false); }
+
+        /// <summary>Same as Run but also saves the scene (used by Setup Project and batch tools).</summary>
+        public static void RunAndSave() { Apply(true); }
+
+        static void Apply(bool save)
         {
             AssetDatabase.Refresh();
             PackOpenProjectSetup.WireArt();
@@ -54,7 +59,10 @@ namespace PackOpen.Editor
                 AssetDatabase.CreateAsset(mat, MaterialPath);
             }
 
-            var scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
+            // Use the open scene so unsaved edits (VFX tweaks etc.) are kept.
+            var scene = EditorSceneManager.GetActiveScene();
+            if (scene.path != ScenePath || !scene.isLoaded)
+                scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
             var canvas = Object.FindFirstObjectByType<Canvas>();
             var seq = Object.FindFirstObjectByType<PackOpenSequence>();
             var anchors = Object.FindFirstObjectByType<PackOpenAnchors>();
@@ -78,6 +86,7 @@ namespace PackOpen.Editor
 
             Wire(seq, PackOpenStageId.PackAppear, typeof(PackAppearStage), ("rig", rig), ("idleVfx", idleVfx));
             Wire(seq, PackOpenStageId.PackTear, typeof(PackTearStage), ("rig", rig), ("idleVfx", idleVfx), ("tearVfx", tearVfx));
+            MigrateTear(seq);
             Wire(seq, PackOpenStageId.PackMoveDown, typeof(PackMoveDownStage), ("rig", rig));
             Wire(seq, PackOpenStageId.CardsMoveOut, typeof(CardsMoveOutStage), ("rig", rig), ("cards", cards));
             Wire(seq, PackOpenStageId.CardsFlip, typeof(CardsFlipStage), ("cards", cards));
@@ -85,9 +94,9 @@ namespace PackOpen.Editor
             Wire(seq, PackOpenStageId.FlyToWallet, typeof(FlyToWalletStage), ("cards", cards));
 
             EditorSceneManager.MarkSceneDirty(scene);
-            EditorSceneManager.SaveScene(scene);
+            if (save) EditorSceneManager.SaveScene(scene);
             AssetDatabase.SaveAssets();
-            Debug.Log("[PackOpen] Pack rig ready.");
+            Debug.Log("[PackOpen] Pack rig ready." + (save ? " (saved)" : " Save the scene (Cmd+S) to keep it."));
         }
 
         static PackRig BuildRig(Canvas canvas, PackOpenAnchors anchors, Material mat, Layout l,
@@ -299,6 +308,24 @@ namespace PackOpen.Editor
             if (cardPrefab != null) cards.cardPrefab = cardPrefab;
             EditorUtility.SetDirty(cards);
             return cards;
+        }
+
+        /// <summary>Applies the slower two-phase tear tuning to scenes made with the old defaults. Hand-tuned values stay.</summary>
+        static void MigrateTear(PackOpenSequence seq)
+        {
+            var tear = seq.GetComponentInChildren<PackTearStage>(true);
+            if (tear == null) return;
+            var so = new SerializedObject(tear);
+            void Upgrade(string field, float oldDefault, float newValue)
+            {
+                var p = so.FindProperty(field);
+                if (p != null && Mathf.Approximately(p.floatValue, oldDefault)) p.floatValue = newValue;
+            }
+            Upgrade("wobbleTime", 0.55f, 0.9f);
+            Upgrade("bodySettleTime", 0.45f, 0.65f);
+            Upgrade("idleStopLead", 0.15f, 0.3f);
+            Upgrade("flutterTravel", 1.5f, 2.2f);
+            so.ApplyModifiedPropertiesWithoutUndo();
         }
 
         const string VfxDir = "Assets/VFX/Prefabs/Final";

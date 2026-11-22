@@ -73,6 +73,13 @@ Tap tile -> PackAppear -> PackTear -> PackMoveDown -> CardsMoveOut -> CardsFlip 
 - Replays: stop or destroy VFX started from `onTear`, `onCardRevealed`, `onHoldStart`, `onCardArrived` when a new run starts.
 - `TapToOpen` reads `sequence.IsRunning`, so the label always returns; tick `skipOnTap` to let a tap skip a running sequence. The label uses a relative bottom anchor (y 0.115).
 
+## Pack VFX hookup
+`PackOpen > Setup Pack Rig` creates `Canvas/VFX` (right after `PackRig`, under `TapLayer`) with scene instances of `VFX/Prefabs/Final/VFX_CardPack_Idle` and `VFX_CardPack_Fast`, each with a `UiVfx` component, and wires them to the stages.
+- Idle: starts when `PackAppear` starts, follows the pack position, winds down `idleStopLead` before the tear.
+- Fast: starts at the tear moment, follows the flying strip, pops in (scale), fades near the end, then stops.
+- Tune on the `PackAppear` / `PackTear` components (`idleOffset`, `tearOffset`, pop, fade) and on each `UiVfx` (`scaleMultiplier`). Not children of the pack on purpose: the pack's scale and squash would distort the particles.
+- `UiVfx` drives the standard ParticleSystem components, so `ZParticleSystem` (Assembly-CSharp) is not referenced from the asmdefs. Skip hides both immediately.
+
 ## Prefabs
 Run `PackOpen > Setup Pack Rig` once; it creates (never overwrites) these and wires all stages:
 - `Assets/Prefabs/Card.prefab`: `Front` (ArtMask with Mask > Art, shared Frame, Stars, Name) and `Back`. `CardView.Bind/ShowBack/ShowFront`. All cards share one silhouette (`Art/Final/Card/card_mask.png`), so any art sprite fits. Card art = `CardData.face` (illustration + baked background, regenerate with `tools/art/make_card_art.py`).

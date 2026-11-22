@@ -13,6 +13,16 @@ namespace PackOpen.Stages
     {
         [SerializeField] PackRig rig;
 
+        [Header("VFX")]
+        [SerializeField] UiVfx idleVfx;
+        [SerializeField] UiVfx tearVfx;
+        [Tooltip("Canvas pixels from the strip's pivot (its top centre) to where the sparkle sits.")]
+        [SerializeField] Vector2 tearOffset = new Vector2(0f, -40f);
+        [SerializeField] float idleStopLead = 0.15f;
+        [SerializeField] float vfxPopTime = 0.25f;
+        [SerializeField, Range(0.1f, 1f)] float vfxPopFrom = 0.6f;
+        [SerializeField, Range(0.1f, 1f)] float vfxFadeFraction = 0.4f;
+
         [Header("Wobble (before the tear)")]
         [SerializeField] float wobbleTime = 0.55f;
         [SerializeField] float wobbleAngle = 9f;
@@ -50,6 +60,8 @@ namespace PackOpen.Stages
             {
                 Swap();
                 rig.strip.gameObject.SetActive(false);
+                if (idleVfx != null) idleVfx.Hide();
+                if (tearVfx != null) tearVfx.Hide();
                 yield break;
             }
 
@@ -73,6 +85,17 @@ namespace PackOpen.Stages
 
             // 2. tear: swap sprites, fire the VFX hook
             seq.InsertCallback(T, () => { Swap(); onTear?.Invoke(); });
+
+            // idle sparkle winds down just before the tear; the tear sparkle rides the strip
+            if (idleVfx != null) seq.InsertCallback(Mathf.Max(0f, T - idleStopLead), () => idleVfx.Stop());
+            if (tearVfx != null)
+            {
+                seq.InsertCallback(T, () => { tearVfx.Follow(rig.strip.transform, tearOffset); tearVfx.Play(); });
+                seq.Insert(T, DOTween.To(k => tearVfx.SetPop(k), vfxPopFrom, 1f, vfxPopTime).SetEase(Ease.OutBack));
+                float fade = flyTime * vfxFadeFraction;
+                seq.Insert(T + flyTime - fade, DOTween.To(a => tearVfx.SetAlpha(a), 1f, 0f, fade).SetEase(Ease.InQuad));
+                seq.InsertCallback(T + flyTime, () => tearVfx.Stop());
+            }
 
             // body jolts then settles
             seq.Insert(T, PackRig.Float(rig.BodyMat, "_Skew", bodyKickSkew, 0f, bodySettleTime).SetEase(Ease.OutElastic));

@@ -8,6 +8,8 @@ namespace PackOpen.Stages
     public class PackAppearStage : PackOpenStageBase
     {
         [SerializeField] PackRig rig;
+        [SerializeField] UiVfx idleVfx;
+        [SerializeField] Vector2 idleOffset;
         [SerializeField] float duration = 0.6f;
         [SerializeField, Range(0.05f, 1f)] float startScale = 0.35f;
         [SerializeField] float startTilt = -25f;
@@ -23,6 +25,9 @@ namespace PackOpen.Stages
             var root = rig.root;
             Vector3 to = ctx.Anchors != null && ctx.Anchors.packCenter != null ? ctx.Anchors.packCenter.position : root.position;
             Vector3 from = ctx.PackOrigin != null ? ctx.PackOrigin.position : to;
+
+            // idle sparkle rides with the pack from the start (PackTear stops it)
+            if (idleVfx != null) { idleVfx.Follow(root, idleOffset); idleVfx.Play(); }
 
             if (ctx.Skip) { root.position = to; yield break; }
 

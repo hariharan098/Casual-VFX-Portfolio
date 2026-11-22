@@ -73,8 +73,11 @@ namespace PackOpen.Editor
                 if (exit.anchoredPosition.y < -1000f) exit.anchoredPosition = new Vector2(0, -600f);
             }
 
-            Wire(seq, PackOpenStageId.PackAppear, typeof(PackAppearStage), ("rig", rig));
-            Wire(seq, PackOpenStageId.PackTear, typeof(PackTearStage), ("rig", rig));
+            var idleVfx = EnsureVfx(canvas, rig, "VFX_CardPack_Idle");
+            var tearVfx = EnsureVfx(canvas, rig, "VFX_CardPack_Fast");
+
+            Wire(seq, PackOpenStageId.PackAppear, typeof(PackAppearStage), ("rig", rig), ("idleVfx", idleVfx));
+            Wire(seq, PackOpenStageId.PackTear, typeof(PackTearStage), ("rig", rig), ("idleVfx", idleVfx), ("tearVfx", tearVfx));
             Wire(seq, PackOpenStageId.PackMoveDown, typeof(PackMoveDownStage), ("rig", rig));
             Wire(seq, PackOpenStageId.CardsMoveOut, typeof(CardsMoveOutStage), ("rig", rig), ("cards", cards));
             Wire(seq, PackOpenStageId.CardsFlip, typeof(CardsFlipStage), ("cards", cards));
@@ -296,6 +299,42 @@ namespace PackOpen.Editor
             if (cardPrefab != null) cards.cardPrefab = cardPrefab;
             EditorUtility.SetDirty(cards);
             return cards;
+        }
+
+        const string VfxDir = "Assets/VFX/Prefabs/Final";
+
+        /// <summary>Instance of a UI VFX prefab under Canvas/VFX (after the pack, before the tap layer), inactive, with UiVfx.</summary>
+        static UiVfx EnsureVfx(Canvas canvas, PackRig rig, string prefabName)
+        {
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>($"{VfxDir}/{prefabName}.prefab");
+            if (prefab == null)
+            {
+                Debug.LogWarning($"[PackOpen] {prefabName}.prefab not found in {VfxDir}; skipping.");
+                return null;
+            }
+
+            var canvasRt = (RectTransform)canvas.transform;
+            var container = canvasRt.Find("VFX") as RectTransform;
+            if (container == null)
+            {
+                container = Child("VFX", canvasRt);
+                container.anchorMin = container.anchorMax = new Vector2(0.5f, 0.5f);
+                container.sizeDelta = Vector2.zero;
+            }
+            container.SetSiblingIndex(Mathf.Min(canvasRt.childCount - 1, rig.transform.GetSiblingIndex() + 1));
+
+            Transform inst = container.Find(prefabName);
+            if (inst == null)
+            {
+                var go = (GameObject)PrefabUtility.InstantiatePrefab(prefab, container);
+                go.name = prefabName;
+                go.SetActive(false);
+                inst = go.transform;
+            }
+            var vfx = inst.GetComponent<UiVfx>();
+            if (vfx == null) vfx = inst.gameObject.AddComponent<UiVfx>();
+            EditorUtility.SetDirty(vfx);
+            return vfx;
         }
 
         static RectTransform Child(string name, Transform parent)

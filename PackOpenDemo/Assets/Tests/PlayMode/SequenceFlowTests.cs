@@ -45,9 +45,29 @@ namespace PackOpen.Tests
                 }
             };
 
+            var vfxAll = Object.FindObjectsByType<UiVfx>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            UiVfx idle = null, fast = null;
+            foreach (var v in vfxAll) { if (v.name == "VFX_CardPack_Idle") idle = v; if (v.name == "VFX_CardPack_Fast") fast = v; }
+            Assert.NotNull(idle, "Idle VFX missing: run PackOpen > Setup Pack Rig");
+            Assert.NotNull(fast, "Fast VFX missing: run PackOpen > Setup Pack Rig");
+            Assert.IsFalse(idle.IsActive); Assert.IsFalse(fast.IsActive);
+            bool idleSeen = false, fastSeen = false, idleDuringAppear = false;
+
             Assert.IsTrue(seq.Begin(pack));
             float t = 0;
-            while (seq.IsRunning && t < 25f) { t += Time.deltaTime; yield return null; }
+            while (seq.IsRunning && t < 25f)
+            {
+                t += Time.deltaTime;
+                idleSeen |= idle.IsActive; fastSeen |= fast.IsActive;
+                if (seq.CurrentStage == PackOpenStageId.PackAppear) idleDuringAppear |= idle.IsActive;
+                yield return null;
+            }
+            Assert.IsTrue(idleDuringAppear, "idle VFX should show while the pack comes in");
+            Assert.IsTrue(idleSeen && fastSeen, "both VFX should have played");
+            float w = 0;
+            while ((idle.IsActive || fast.IsActive) && w < 6f) { w += Time.deltaTime; yield return null; }
+            Assert.IsFalse(idle.IsActive, "idle VFX should be off after the run");
+            Assert.IsFalse(fast.IsActive, "tear VFX should be off after the run");
             Assert.IsFalse(seq.IsRunning, "sequence did not finish on its own");
 
             var expected = new List<PackOpenStageId>

@@ -82,15 +82,17 @@ namespace PackOpen.Editor
                 if (exit.anchoredPosition.y < -1000f) exit.anchoredPosition = new Vector2(0, -600f);
             }
 
-            var idleVfx = EnsureVfx(canvas, rig, "VFX_CardPack_Idle");
-            var tearVfx = EnsureVfx(canvas, rig, "VFX_CardPack_Fast");
+            var idleVfx = EnsureVfx(canvas, rig, "VFX_CardPack_Idle", true);
+            var tearVfx = EnsureVfx(canvas, rig, "VFX_CardPack_Fast", false);
+            var glowVfx = EnsureVfx(canvas, rig, "VFX_Card_Glow", true);
 
             Wire(seq, PackOpenStageId.PackAppear, typeof(PackAppearStage), ("rig", rig), ("idleVfx", idleVfx));
             Wire(seq, PackOpenStageId.PackTear, typeof(PackTearStage), ("rig", rig), ("idleVfx", idleVfx), ("tearVfx", tearVfx));
+            LayerVfx(canvas, rig, cards);
             MigrateAppear(seq);
             MigrateTear(seq);
             Wire(seq, PackOpenStageId.PackMoveDown, typeof(PackMoveDownStage), ("rig", rig));
-            Wire(seq, PackOpenStageId.CardsMoveOut, typeof(CardsMoveOutStage), ("rig", rig), ("cards", cards));
+            Wire(seq, PackOpenStageId.CardsMoveOut, typeof(CardsMoveOutStage), ("rig", rig), ("cards", cards), ("glowVfx", glowVfx));
             Wire(seq, PackOpenStageId.CardsFlip, typeof(CardsFlipStage), ("cards", cards));
             Wire(seq, PackOpenStageId.Hold, typeof(HoldStage));
             Wire(seq, PackOpenStageId.FlyToWallet, typeof(FlyToWalletStage), ("cards", cards));
@@ -378,8 +380,11 @@ namespace PackOpen.Editor
 
         const string VfxDir = "Assets/VFX/Prefabs/Final";
 
-        /// <summary>Instance of a UI VFX prefab under Canvas/VFX (after the pack, before the tap layer), inactive, with UiVfx.</summary>
-        static UiVfx EnsureVfx(Canvas canvas, PackRig rig, string prefabName)
+        /// <summary>
+        /// Instance of a UI VFX prefab, inactive, with UiVfx. An instance that already exists anywhere under the Canvas is reused
+        /// (so hand-placed ones are kept). New ones go to Canvas/VFX_Back (behind cards and pack) or Canvas/VFX (in front of the pack).
+        /// </summary>
+        static UiVfx EnsureVfx(Canvas canvas, PackRig rig, string prefabName, bool behindCards)
         {
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>($"{VfxDir}/{prefabName}.prefab");
             if (prefab == null)
@@ -389,18 +394,19 @@ namespace PackOpen.Editor
             }
 
             var canvasRt = (RectTransform)canvas.transform;
-            var container = canvasRt.Find("VFX") as RectTransform;
-            if (container == null)
-            {
-                container = Child("VFX", canvasRt);
-                container.anchorMin = container.anchorMax = new Vector2(0.5f, 0.5f);
-                container.sizeDelta = Vector2.zero;
-            }
-            container.SetSiblingIndex(Mathf.Min(canvasRt.childCount - 1, rig.transform.GetSiblingIndex() + 1));
-
-            Transform inst = container.Find(prefabName);
+            Transform inst = null;
+            foreach (var t in canvasRt.GetComponentsInChildren<Transform>(true))
+                if (t.name == prefabName) { inst = t; break; }
             if (inst == null)
             {
+                string containerName = behindCards ? "VFX_Back" : "VFX";
+                var container = canvasRt.Find(containerName) as RectTransform;
+                if (container == null)
+                {
+                    container = Child(containerName, canvasRt);
+                    container.anchorMin = container.anchorMax = new Vector2(0.5f, 0.5f);
+                    container.sizeDelta = Vector2.zero;
+                }
                 var go = (GameObject)PrefabUtility.InstantiatePrefab(prefab, container);
                 go.name = prefabName;
                 go.SetActive(false);
@@ -410,6 +416,27 @@ namespace PackOpen.Editor
             if (vfx == null) vfx = inst.gameObject.AddComponent<UiVfx>();
             EditorUtility.SetDirty(vfx);
             return vfx;
+        }
+
+        /// <summary>Canvas order (back to front): Scrim, Anchors, VFX_Back (idle, card glow), Cards, PackRig, VFX (tear), TapLayer.</summary>
+        static void LayerVfx(Canvas canvas, PackRig rig, CardsRig cards)
+        {
+            var canvasRt = (RectTransform)canvas.transform;
+            var back = canvasRt.Find("VFX_Back");
+            var front = canvasRt.Find("VFX");
+            var cardsT = cards != null ? FindTop(canvasRt, cards.container) : null;
+            var rigT = FindTop(canvasRt, rig.transform);
+            var order = new System.Collections.Generic.List<Transform>();
+            foreach (var t in new[] { back, cardsT, rigT, front }) if (t != null) order.Add(t);
+            int start = int.MaxValue;
+            foreach (var t in order) start = Mathf.Min(start, t.GetSiblingIndex());
+            for (int i = 0; i < order.Count; i++) order[i].SetSiblingIndex(start + i);
+        }
+
+        static Transform FindTop(Transform canvas, Transform t)
+        {
+            while (t != null && t.parent != canvas) t = t.parent;
+            return t;
         }
 
         static RectTransform Child(string name, Transform parent)

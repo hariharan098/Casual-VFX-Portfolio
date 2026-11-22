@@ -28,6 +28,17 @@ namespace PackOpen.Stages
         [Tooltip("Card spacing in canvas pixels, used only when the scene has fewer CardSlot anchors than cards.")]
         [SerializeField] float fallbackSpacing = 320f;
 
+        [Header("Glow burst (VFX_Card_Glow)")]
+        [SerializeField] UiVfx glowVfx;
+        [Tooltip("Canvas pixels from the card spawn point (the pack opening).")]
+        [SerializeField] Vector2 glowOffset = Vector2.zero;
+        [Tooltip("On: the glow restarts as every card is dealt. Off: one burst when the first card is dealt.")]
+        [SerializeField] bool glowPerCard = true;
+        [Tooltip("Seconds after the last burst starts before the fade begins.")]
+        [SerializeField] float glowFadeDelay = 0.15f;
+        [Tooltip("Seconds the glow takes to fade out (emission stops when the fade starts).")]
+        [SerializeField] float glowFadeTime = 0.4f;
+
         [Header("Pack sink")]
         [SerializeField] float sinkDelay = 0.25f;
         [SerializeField] float sinkTime = 0.5f;
@@ -49,6 +60,14 @@ namespace PackOpen.Stages
             }
 
             var seq = DOTween.Sequence().SetTarget(this);
+            int glowLast = glowPerCard ? n - 1 : 0;
+            Vector3 glowPos = spawn;
+            if (glowVfx != null)
+            {
+                var gp = glowVfx.transform.parent;
+                if (gp != null) glowPos += gp.TransformVector(new Vector3(glowOffset.x, glowOffset.y, 0f));
+                glowVfx.Hide();
+            }
             for (int i = 0; i < n; i++)
             {
                 var card = cards.Cards[i];
@@ -61,6 +80,17 @@ namespace PackOpen.Stages
                 rt.localScale = Vector3.one * startScale;
                 rt.localRotation = Quaternion.Euler(0, 0, tilt);
                 seq.InsertCallback(at, () => { rt.position = spawn; card.gameObject.SetActive(true); });
+                if (glowVfx != null && i <= glowLast && (glowPerCard || i == 0))
+                {
+                    seq.InsertCallback(at, () => { glowVfx.transform.position = glowPos; glowVfx.Play(); });
+                    if (i == glowLast)
+                    {
+                        float fadeAt = at + glowFadeDelay;
+                        seq.InsertCallback(fadeAt, () => glowVfx.Stop());
+                        seq.Insert(fadeAt, DOTween.To(a => glowVfx.SetAlpha(a), 1f, 0f, glowFadeTime).SetEase(Ease.InQuad));
+                        seq.InsertCallback(fadeAt + glowFadeTime, () => glowVfx.Hide());
+                    }
+                }
                 CardsRig.AddMove(seq, at, rt, spawn, to, travelTime, xEase, yEase);
                 seq.Insert(at, CardsRig.Scale(rt, Vector3.one * startScale, Vector3.one, travelTime).SetEase(scaleEase));
                 seq.Insert(at, CardsRig.RotZ(rt, tilt, 0f, travelTime).SetEase(Ease.OutQuad));

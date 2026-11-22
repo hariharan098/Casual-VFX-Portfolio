@@ -17,8 +17,8 @@ namespace PackOpen.Stages
         public Image full;
         public Image bodyOpen;
         public Image strip;
-        [Tooltip("Strip pivot: 1 keeps the right end attached so the left end peels and curls.")]
-        public float stripPivotX = 1f;
+        [Tooltip("Strip pivot: 0 keeps the left end attached so the right end lifts and curls first (as in the reference); 1 is the mirror.")]
+        public float stripPivotX = 0f;
 
         public Vector3 BaseScale { get; private set; } = Vector3.one;
         public Vector3 StripHome { get; private set; }

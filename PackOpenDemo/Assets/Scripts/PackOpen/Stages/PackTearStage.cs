@@ -6,8 +6,10 @@ using UnityEngine.Events;
 namespace PackOpen.Stages
 {
     /// <summary>
-    /// Wobble with squash and shader skew, swap to the torn body at the tear moment, strip peels off.
-    /// All timings and amounts are tunable. Shader values are in the pack's local pixels (860 wide).
+    /// Modelled on the reference (frames 64-71): the pack leans slightly, the swap happens, the strip peels from the
+    /// right corner with force building slowly (the pack is pulled the other way), then is thrown up and to the left
+    /// off screen while the pack recoils to upright. All timings and amounts are tunable.
+    /// Shader values are in the pack's local pixels (860 wide).
     /// </summary>
     public class PackTearStage : PackOpenStageBase
     {
@@ -16,20 +18,23 @@ namespace PackOpen.Stages
         [Header("VFX")]
         [SerializeField] UiVfx idleVfx;
         [SerializeField] UiVfx tearVfx;
-        [Tooltip("Canvas pixels from the strip's pivot (its top centre) to where the sparkle sits.")]
-        [SerializeField] Vector2 tearOffset = new Vector2(0f, -40f);
+        [Tooltip("Canvas pixels from the strip's pivot (its top centre) to where the sparkle sits (top-right corner).")]
+        [SerializeField] Vector2 tearOffset = new Vector2(180f, -30f);
         [SerializeField] float idleStopLead = 0.3f;
         [Tooltip("Seconds after the tear moment when the tear VFX stops emitting. Independent of the strip's flight time.")]
-        [SerializeField] float vfxStopTime = 1.0f;
+        [SerializeField] float vfxStopTime = 1.2f;
         [SerializeField] float vfxPopTime = 0.25f;
         [SerializeField, Range(0.1f, 1f)] float vfxPopFrom = 0.6f;
         [SerializeField, Range(0.1f, 1f)] float vfxFadeFraction = 0.4f;
+        [Tooltip("The VFX follows the strip while it peels, then stays at the pack's top edge when the throw starts.")]
+        [SerializeField] bool vfxDetachOnThrow = true;
 
-        [Header("Wobble (before the tear)")]
-        [SerializeField] float wobbleTime = 0.9f;
-        [SerializeField] float wobbleAngle = 9f;
-        [SerializeField, Range(0f, 0.3f)] float squash = 0.07f;
-        [SerializeField] float skew = 36f;
+        [Header("Lean (before the tear)")]
+        [SerializeField] float wobbleTime = 0.45f;
+        [Tooltip("Degrees the pack leans (clockwise) before the tear.")]
+        [SerializeField] float wobbleAngle = 4f;
+        [SerializeField, Range(0f, 0.3f)] float squash = 0.02f;
+        [SerializeField] float skew = 10f;
 
         [Header("Tear (swap moment)")]
         [SerializeField] float bodyKickSkew = 28f;
@@ -37,29 +42,39 @@ namespace PackOpen.Stages
         [SerializeField] float bodyPunch = 0.06f;
         public UnityEvent onTear;
 
-        [Header("Strip flight: phase A, lateral rip along the tear line")]
-        [SerializeField] float ripTime = 0.6f;
-        [Tooltip("Share of the final X distance covered during the rip.")]
-        [SerializeField, Range(0.2f, 0.9f)] float ripFraction = 0.65f;
-        [Tooltip("Pixels the strip rises during the rip (keep small: the rip is mostly sideways).")]
-        [SerializeField] float ripLift = 40f;
-        [SerializeField] float ripRotation = 12f;
-        [SerializeField] float ripCurl = 60f;
-        [SerializeField] Ease ripXEase = Ease.InOutQuad;
+        [Header("Pack pull and recoil")]
+        [Tooltip("Degrees the pack is pulled the other way (counter-clockwise) while the strip peels.")]
+        [SerializeField] float pullAngle = 7f;
+        [SerializeField] float recoilTime = 0.45f;
 
-        [Header("Strip flight: phase B, lift-off")]
-        [SerializeField] float liftTime = 0.8f;
-        [Tooltip("Final position of the strip relative to its home (x is also the end of the rip).")]
-        [SerializeField] Vector2 flyOffset = new Vector2(-760f, 640f);
-        [SerializeField] float flyRotation = 55f;
-        [SerializeField] float curl = 170f;
+        [Header("Strip flight: phase A, slow peel from the right corner")]
+        [SerializeField] float ripTime = 0.6f;
+        [Tooltip("Share of the final X distance covered during the peel.")]
+        [SerializeField, Range(0.2f, 0.9f)] float ripFraction = 0.2f;
+        [Tooltip("Pixels the strip rises during the peel.")]
+        [SerializeField] float ripLift = 30f;
+        [SerializeField] float ripRotation = 25f;
+        [SerializeField] float ripCurl = 110f;
+        [SerializeField] Ease ripXEase = Ease.InQuad;
+        [SerializeField] Ease ripYEase = Ease.InOutSine;
+        [SerializeField] Ease ripRotEase = Ease.InQuad;
+
+        [Header("Strip flight: phase B, throw off screen")]
+        [SerializeField] float liftTime = 0.4f;
+        [Tooltip("Final position of the strip relative to its home. Keep it beyond the screen edge.")]
+        [SerializeField] Vector2 flyOffset = new Vector2(-820f, 1000f);
+        [SerializeField] float flyRotation = 75f;
+        [SerializeField] float curl = 180f;
         [SerializeField] float flutterAmp = 40f;
         [SerializeField] float flutterTravel = 2.2f;
-        [SerializeField] Ease liftXEase = Ease.OutQuad;
-        [SerializeField] Ease liftYEase = Ease.InQuad;
-        [SerializeField, Range(0.1f, 1f)] float stripFadeFraction = 0.35f;
+        [SerializeField] Ease liftXEase = Ease.InQuad;
+        [SerializeField] Ease liftYEase = Ease.InCubic;
+        [SerializeField, Range(0.05f, 1f)] float stripFadeFraction = 0.15f;
 
-        /// <summary>Total strip flight time (rip + lift-off).</summary>
+        // 0 = scene made before the reference-based preset; PackRigSetup applies the preset once and sets this to 2.
+        [SerializeField, HideInInspector] int tuningVersion = 0;
+
+        /// <summary>Total strip flight time (peel + throw).</summary>
         public float FlightTime => ripTime + liftTime;
 
         public override IEnumerator Play(PackOpenContext ctx)
@@ -77,67 +92,67 @@ namespace PackOpen.Stages
             {
                 Swap();
                 rig.strip.gameObject.SetActive(false);
+                root.localRotation = Quaternion.identity;
                 if (idleVfx != null) idleVfx.Hide();
                 if (tearVfx != null) tearVfx.Hide();
                 yield break;
             }
 
             float T = wobbleTime;
+            float tB = T + ripTime;                 // throw start
+            float end = T + FlightTime;
             var seq = DOTween.Sequence().SetTarget(rig);
 
-            // 1. wobble: rotation punch + squash/stretch steps + shader skew pulses
-            seq.Insert(0f, root.DOPunchRotation(new Vector3(0, 0, wobbleAngle), T, 8, 0.6f));
-            Vector3 wide = Vector3.Scale(s0, new Vector3(1f + squash, 1f - squash, 1f));
-            Vector3 tall = Vector3.Scale(s0, new Vector3(1f - squash * 0.7f, 1f + squash * 0.7f, 1f));
-            Vector3 wide2 = Vector3.Scale(s0, new Vector3(1f + squash * 0.5f, 1f - squash * 0.5f, 1f));
-            seq.Insert(0f, root.DOScale(wide, T * 0.20f).SetEase(Ease.OutQuad));
-            seq.Insert(T * 0.20f, root.DOScale(tall, T * 0.25f).SetEase(Ease.InOutQuad));
-            seq.Insert(T * 0.45f, root.DOScale(wide2, T * 0.20f).SetEase(Ease.InOutQuad));
-            seq.Insert(T * 0.65f, root.DOScale(s0, T * 0.35f).SetEase(Ease.OutBack));
-
-            seq.Insert(0f, PackRig.Float(rig.FullMat, "_Skew", 0f, skew, T * 0.22f).SetEase(Ease.OutQuad));
-            seq.Insert(T * 0.22f, PackRig.Float(rig.FullMat, "_Skew", skew, -skew * 0.75f, T * 0.28f).SetEase(Ease.InOutSine));
-            seq.Insert(T * 0.50f, PackRig.Float(rig.FullMat, "_Skew", -skew * 0.75f, skew * 0.4f, T * 0.25f).SetEase(Ease.InOutSine));
-            seq.Insert(T * 0.75f, PackRig.Float(rig.FullMat, "_Skew", skew * 0.4f, 0f, T * 0.25f).SetEase(Ease.InOutSine));
+            // 1. lean: the pack tips slightly, a hint of squash and skew for tension
+            root.localRotation = Quaternion.identity;
+            seq.Insert(0f, CardsRig.RotZ(root, 0f, -wobbleAngle, T).SetEase(Ease.InOutSine));
+            Vector3 squashed = Vector3.Scale(s0, new Vector3(1f + squash, 1f - squash, 1f));
+            seq.Insert(0f, CardsRig.Scale(root, s0, squashed, T * 0.6f).SetEase(Ease.InOutSine));
+            seq.Insert(T * 0.6f, CardsRig.Scale(root, squashed, s0, T * 0.4f).SetEase(Ease.OutQuad));
+            seq.Insert(0f, PackRig.Float(rig.FullMat, "_Skew", 0f, skew, T * 0.7f).SetEase(Ease.InOutSine));
+            seq.Insert(T * 0.7f, PackRig.Float(rig.FullMat, "_Skew", skew, 0f, T * 0.3f).SetEase(Ease.InOutSine));
 
             // 2. tear: swap sprites, fire the VFX hook
             seq.InsertCallback(T, () => { Swap(); onTear?.Invoke(); });
 
-            // idle sparkle winds down just before the tear; the tear sparkle rides the strip
+            // idle sparkle winds down just before the tear; the tear sparkle starts at the corner and rides the strip
             if (idleVfx != null) seq.InsertCallback(Mathf.Max(0f, T - idleStopLead), () => idleVfx.Stop());
             if (tearVfx != null)
             {
                 seq.InsertCallback(T, () => { tearVfx.Follow(rig.strip.transform, tearOffset); tearVfx.Play(); });
+                if (vfxDetachOnThrow) seq.InsertCallback(tB, () => tearVfx.Follow(null, Vector2.zero));
                 seq.Insert(T, DOTween.To(k => tearVfx.SetPop(k), vfxPopFrom, 1f, vfxPopTime).SetEase(Ease.OutBack));
                 float fade = vfxStopTime * vfxFadeFraction;
                 seq.Insert(T + vfxStopTime - fade, DOTween.To(a => tearVfx.SetAlpha(a), 1f, 0f, fade).SetEase(Ease.InQuad));
                 seq.InsertCallback(T + vfxStopTime, () => tearVfx.Stop());
             }
 
+            // pack is pulled the other way while the strip peels, then recoils to upright as the strip is thrown
+            seq.Insert(T, CardsRig.RotZ(root, -wobbleAngle, pullAngle, ripTime).SetEase(Ease.InOutSine));
+            seq.Insert(tB, CardsRig.RotZ(root, pullAngle, 0f, recoilTime).SetEase(Ease.OutBack));
+
             // body jolts then settles
             seq.Insert(T, PackRig.Float(rig.BodyMat, "_Skew", bodyKickSkew, 0f, bodySettleTime).SetEase(Ease.OutElastic));
             seq.Insert(T, rig.bodyOpen.rectTransform.DOPunchScale(Vector3.one * bodyPunch, bodySettleTime, 6, 0.6f));
 
-            // 3. strip: phase A rips sideways along the tear line, phase B lifts off
+            // 3. strip: phase A peels slowly, force building; phase B throws it up and to the left, off screen
             var rt = rig.strip.rectTransform;
             Vector3 home = rig.StripHome;
             Vector3 away = home + new Vector3(flyOffset.x, flyOffset.y, 0f);
             float ripX = home.x + (away.x - home.x) * ripFraction;
             float ripY = home.y + ripLift;
-            float tB = T + ripTime;                 // lift-off start
-            float end = T + FlightTime;
 
             seq.Insert(T, StripX(rt, home.x, ripX, ripTime, ripXEase));
-            seq.Insert(T, StripY(rt, home.y, ripY, ripTime, Ease.OutSine));
+            seq.Insert(T, StripY(rt, home.y, ripY, ripTime, ripYEase));
             seq.Insert(tB, StripX(rt, ripX, away.x, liftTime, liftXEase));
             seq.Insert(tB, StripY(rt, ripY, away.y, liftTime, liftYEase));
 
-            seq.Insert(T, StripRot(rt, 0f, ripRotation, ripTime, Ease.InOutSine));
-            seq.Insert(tB, StripRot(rt, ripRotation, flyRotation, liftTime, Ease.OutQuad));
+            seq.Insert(T, StripRot(rt, 0f, ripRotation, ripTime, ripRotEase));
+            seq.Insert(tB, StripRot(rt, ripRotation, flyRotation, liftTime, Ease.InQuad));
 
-            seq.Insert(T, PackRig.Float(rig.StripMat, "_BendY", 0f, ripCurl, ripTime).SetEase(Ease.OutQuad));
+            seq.Insert(T, PackRig.Float(rig.StripMat, "_BendY", 0f, ripCurl, ripTime).SetEase(Ease.InQuad));
             seq.Insert(tB, PackRig.Float(rig.StripMat, "_BendY", ripCurl, curl, liftTime * 0.7f).SetEase(Ease.OutQuad));
-            seq.Insert(T, PackRig.Float(rig.StripMat, "_WaveAmpY", 0f, flutterAmp * 0.4f, ripTime).SetEase(Ease.OutQuad));
+            seq.Insert(T, PackRig.Float(rig.StripMat, "_WaveAmpY", 0f, flutterAmp * 0.4f, ripTime).SetEase(Ease.InQuad));
             seq.Insert(tB, PackRig.Float(rig.StripMat, "_WaveAmpY", flutterAmp * 0.4f, flutterAmp, liftTime * 0.5f).SetEase(Ease.OutQuad));
             seq.Insert(T, PackRig.Float(rig.StripMat, "_WavePhase", 0f, flutterTravel, FlightTime).SetEase(Ease.Linear));
 
@@ -146,6 +161,8 @@ namespace PackOpen.Stages
             seq.InsertCallback(end, () => rig.strip.gameObject.SetActive(false));
 
             yield return PackRig.Await(seq, ctx);
+            root.localRotation = Quaternion.identity;
+            root.localScale = s0;
         }
 
         static Tweener StripX(RectTransform rt, float from, float to, float dur, Ease ease) =>

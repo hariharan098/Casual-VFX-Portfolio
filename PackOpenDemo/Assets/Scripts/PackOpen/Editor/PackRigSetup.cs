@@ -1,4 +1,5 @@
 using System.IO;
+using DG.Tweening;
 using PackOpen.Stages;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -310,22 +311,45 @@ namespace PackOpen.Editor
             return cards;
         }
 
-        /// <summary>Applies the slower two-phase tear tuning to scenes made with the old defaults. Hand-tuned values stay.</summary>
+        const int TearTuningVersion = 2;
+
+        /// <summary>
+        /// Applies the reference-based tear preset (frames 64-71) once to scenes made before it, then marks the
+        /// component so later hand-tuning is never overwritten.
+        /// </summary>
         static void MigrateTear(PackOpenSequence seq)
         {
             var tear = seq.GetComponentInChildren<PackTearStage>(true);
             if (tear == null) return;
             var so = new SerializedObject(tear);
-            void Upgrade(string field, float oldDefault, float newValue)
-            {
-                var p = so.FindProperty(field);
-                if (p != null && Mathf.Approximately(p.floatValue, oldDefault)) p.floatValue = newValue;
-            }
-            Upgrade("wobbleTime", 0.55f, 0.9f);
-            Upgrade("bodySettleTime", 0.45f, 0.65f);
-            Upgrade("idleStopLead", 0.15f, 0.3f);
-            Upgrade("flutterTravel", 1.5f, 2.2f);
+            var version = so.FindProperty("tuningVersion");
+            if (version.intValue >= TearTuningVersion) return;
+
+            void F(string n, float v) { var p = so.FindProperty(n); if (p != null) p.floatValue = v; }
+            void E(string n, Ease v) { var p = so.FindProperty(n); if (p != null) p.enumValueIndex = System.Array.IndexOf(p.enumNames, v.ToString()); }
+            void V(string n, Vector2 v) { var p = so.FindProperty(n); if (p != null) p.vector2Value = v; }
+
+            F("wobbleTime", 0.45f); F("wobbleAngle", 4f); F("squash", 0.02f); F("skew", 10f);
+            F("pullAngle", 7f); F("recoilTime", 0.45f);
+            F("ripTime", 0.6f); F("ripFraction", 0.2f); F("ripLift", 30f); F("ripRotation", 25f); F("ripCurl", 110f);
+            E("ripXEase", Ease.InQuad); E("ripYEase", Ease.InOutSine); E("ripRotEase", Ease.InQuad);
+            F("liftTime", 0.4f); V("flyOffset", new Vector2(-820f, 1000f)); F("flyRotation", 75f); F("curl", 180f);
+            F("flutterAmp", 40f); F("flutterTravel", 2.2f);
+            E("liftXEase", Ease.InQuad); E("liftYEase", Ease.InCubic); F("stripFadeFraction", 0.15f);
+            V("tearOffset", new Vector2(180f, -30f)); F("vfxStopTime", 1.2f); F("idleStopLead", 0.3f);
+            F("bodySettleTime", 0.65f);
+            version.intValue = TearTuningVersion;
             so.ApplyModifiedPropertiesWithoutUndo();
+
+            // strip hinge on the left so the right corner lifts first
+            var rigProp = new SerializedObject(tear).FindProperty("rig");
+            var rig = rigProp != null ? rigProp.objectReferenceValue as PackRig : null;
+            if (rig != null)
+            {
+                var rso = new SerializedObject(rig);
+                rso.FindProperty("stripPivotX").floatValue = 0f;
+                rso.ApplyModifiedPropertiesWithoutUndo();
+            }
         }
 
         const string VfxDir = "Assets/VFX/Prefabs/Final";

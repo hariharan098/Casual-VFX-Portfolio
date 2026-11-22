@@ -152,9 +152,9 @@ RectTransform:
   m_Children:
   - {fileID: 2023131058}
   - {fileID: 1644194360}
-  - {fileID: 2098270447}
   - {fileID: 501232579}
   - {fileID: 215723378}
+  - {fileID: 2098270447}
   - {fileID: 1441445780}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -674,6 +674,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Pack_Blue
       objectReference: {fileID: 0}
+    - target: {fileID: 7692899254673953533, guid: b177be8216af34bed969be63a16c8a38, type: 3}
+      propertyPath: stripPivotX
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -1070,36 +1074,43 @@ MonoBehaviour:
   rig: {fileID: 501232580}
   idleVfx: {fileID: 1183327838}
   tearVfx: {fileID: 567876956}
-  tearOffset: {x: 200, y: -40}
+  tearOffset: {x: 180, y: -30}
   idleStopLead: 0.3
+  vfxStopTime: 1.2
   vfxPopTime: 0.25
   vfxPopFrom: 0.6
   vfxFadeFraction: 0.237
-  wobbleTime: 0.9
-  wobbleAngle: 9
-  squash: 0.07
-  skew: 36
+  vfxDetachOnThrow: 0
+  wobbleTime: 0.45
+  wobbleAngle: 4
+  squash: 0.02
+  skew: 10
   bodyKickSkew: 28
   bodySettleTime: 0.65
   bodyPunch: 0.06
   onTear:
     m_PersistentCalls:
       m_Calls: []
-  ripTime: 1.2
-  ripFraction: 0.65
-  ripLift: 40
-  ripRotation: 12
-  ripCurl: 50
-  ripXEase: 34
-  liftTime: 0.1
-  flyOffset: {x: -760, y: 640}
-  flyRotation: 55
-  curl: 170
+  pullAngle: 15
+  recoilTime: 0.4
+  ripTime: 0.7
+  ripFraction: 0.2
+  ripLift: 30
+  ripRotation: 25
+  ripCurl: 110
+  ripXEase: 5
+  ripYEase: 4
+  ripRotEase: 5
+  liftTime: 0.4
+  flyOffset: {x: -1500, y: 200}
+  flyRotation: 75
+  curl: 180
   flutterAmp: 40
   flutterTravel: 2.2
-  liftXEase: 32
-  liftYEase: 32
-  stripFadeFraction: 0.35
+  liftXEase: 5
+  liftYEase: 8
+  stripFadeFraction: 0.15
+  tuningVersion: 2
 --- !u!1 &948498748
 GameObject:
   m_ObjectHideFlags: 0

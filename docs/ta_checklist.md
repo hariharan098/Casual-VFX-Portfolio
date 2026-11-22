@@ -75,7 +75,7 @@ Tap tile -> PackAppear -> PackTear -> PackMoveDown -> CardsMoveOut -> CardsFlip 
 
 ## Tear timing (PackTear), based on the reference frames 64-71
 Lean (`wobbleTime` 0.45s, `wobbleAngle` 4 degrees clockwise, tiny squash/skew) -> swap -> slow peel from the right corner (`ripTime` 0.6s: strip rotates and curls, force builds with `InQuad`, the pack is pulled `pullAngle` 7 degrees the other way) -> throw up and to the left off screen (`liftTime` 0.4s, `InCubic`, to `flyOffset`) while the pack recoils to upright (`recoilTime` 0.45s). The strip hinge is on the left (`PackRig.stripPivotX` = 0).
-- Tear VFX starts at the top-right corner (`tearOffset`), follows the strip while it peels, and stays at the pack's top edge once thrown (`vfxDetachOnThrow`). `vfxStopTime` controls when it stops emitting.
+- Tear VFX starts at the top-right corner (`tearOffset`), follows the strip while it peels, and stays at the pack's top edge once thrown (`vfxDetachOnThrow`). `vfxStopTime` controls when it stops emitting; `vfxLingerTime` (0.25s, about 2-3 reference frames) keeps the remaining sparks visible after that, then fades them out and switches the VFX off.
 - `Setup Pack Rig` applies this preset once to older scenes (`tuningVersion` 2), then never overwrites your tuning. Setting `tuningVersion` back to 0 re-applies it.
 - `Setup Pack Rig` works on the open scene and does not save: press Cmd+S afterwards.
 

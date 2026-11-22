@@ -336,7 +336,7 @@ namespace PackOpen.Editor
             F("liftTime", 0.4f); V("flyOffset", new Vector2(-820f, 1000f)); F("flyRotation", 75f); F("curl", 180f);
             F("flutterAmp", 40f); F("flutterTravel", 2.2f);
             E("liftXEase", Ease.InQuad); E("liftYEase", Ease.InCubic); F("stripFadeFraction", 0.15f);
-            V("tearOffset", new Vector2(180f, -30f)); F("vfxStopTime", 1.2f); F("idleStopLead", 0.3f);
+            V("tearOffset", new Vector2(180f, -30f)); F("vfxStopTime", 1.2f); F("vfxLingerTime", 0.25f); F("idleStopLead", 0.3f);
             F("bodySettleTime", 0.65f);
             version.intValue = TearTuningVersion;
             so.ApplyModifiedPropertiesWithoutUndo();

@@ -25,7 +25,8 @@ namespace PackOpen.Stages
         [SerializeField] float vfxStopTime = 1.2f;
         [SerializeField] float vfxPopTime = 0.25f;
         [SerializeField, Range(0.1f, 1f)] float vfxPopFrom = 0.6f;
-        [SerializeField, Range(0.1f, 1f)] float vfxFadeFraction = 0.4f;
+        [Tooltip("After emission stops, the remaining sparks stay visible for this long (about 2-3 reference frames at 0.1s each), then fade out together.")]
+        [SerializeField] float vfxLingerTime = 0.25f;
         [Tooltip("The VFX follows the strip while it peels, then stays at the pack's top edge when the throw starts.")]
         [SerializeField] bool vfxDetachOnThrow = true;
 
@@ -122,9 +123,10 @@ namespace PackOpen.Stages
                 seq.InsertCallback(T, () => { tearVfx.Follow(rig.strip.transform, tearOffset); tearVfx.Play(); });
                 if (vfxDetachOnThrow) seq.InsertCallback(tB, () => tearVfx.Follow(null, Vector2.zero));
                 seq.Insert(T, DOTween.To(k => tearVfx.SetPop(k), vfxPopFrom, 1f, vfxPopTime).SetEase(Ease.OutBack));
-                float fade = vfxStopTime * vfxFadeFraction;
-                seq.Insert(T + vfxStopTime - fade, DOTween.To(a => tearVfx.SetAlpha(a), 1f, 0f, fade).SetEase(Ease.InQuad));
+                // stop emitting, let the sparks linger, then fade the tail and switch off
                 seq.InsertCallback(T + vfxStopTime, () => tearVfx.Stop());
+                seq.Insert(T + vfxStopTime, DOTween.To(a => tearVfx.SetAlpha(a), 1f, 0f, vfxLingerTime).SetEase(Ease.InQuad));
+                seq.InsertCallback(T + vfxStopTime + vfxLingerTime, () => tearVfx.Hide());
             }
 
             // pack is pulled the other way while the strip peels, then recoils to upright as the strip is thrown

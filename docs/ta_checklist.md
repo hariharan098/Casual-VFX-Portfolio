@@ -82,11 +82,14 @@ Lean (`wobbleTime` 0.45s, `wobbleAngle` 4 degrees clockwise, tiny squash/skew) -
 ## Pack VFX hookup
 `PackOpen > Setup Pack Rig` creates `Canvas/VFX` (right after `PackRig`, under `TapLayer`) with scene instances of `VFX/Prefabs/Final/VFX_CardPack_Idle` and `VFX_CardPack_Fast`, each with a `UiVfx` component, and wires them to the stages.
 - Idle: starts when `PackAppear` starts, follows the pack position, winds down `idleStopLead` before the tear.
+- `VFX_Card_PreGlow` on `Pack_Blue`: `PackMoveDown` plays it for the hop/drop, `Hide()` when the stage ends.
 - Fast: starts at the tear moment, follows the flying strip, pops in (scale), fades near the end, then stops.
 - Tune on the `PackAppear` / `PackTear` components (`idleOffset`, `tearOffset`, pop, fade) and on each `UiVfx` (`scaleMultiplier`). Not children of the pack on purpose: the pack's scale and squash would distort the particles.
 - `UiVfx` drives the standard ParticleSystem components, so `ZParticleSystem` (Assembly-CSharp) is not referenced from the asmdefs. Skip hides both immediately.
 
 ## Prefabs
+**Setup Pack Rig** (safe to re-run): fills **missing** stage references only; does **not** change tween fields when `tuningVersion` is set (Appear/Tear = 2); does **not** rewrite `Card.prefab` when `cardSetupVersion` ≥ 1; only fixes canvas layer order if wrong. Use **PackOpen > Force Layer VFX** to reorder manually. **Wire Generated Art** is separate (not run by Setup Pack Rig).
+
 Run `PackOpen > Setup Pack Rig` once; it creates (never overwrites) these and wires all stages:
 - `Assets/Prefabs/Card.prefab`: `Front` / `Back` art plus nested `VFX_Card_Burst` (`VFX_Back`) and `VFX_CardPack_Idle` (`VFX_Front`). **Sorting:** each uses a nested `Canvas` with `overrideSorting` — `CardView.SortBackVfx` (0), `SortCardArt` (10), `SortFrontVfx` (20). All cards share the same three orders so every back/burst layer draws under every card face (UI "layer", not a second camera). `EnforceCanvasLayers()` runs from setup and spawn. Idle glow *behind* the frame: parent idle under `VFX_Back` so it gets sort 0; under `VFX_Front` it stays on top of art (sort 20). `CardView.PlayRevealVfx()` runs on the same frame as `ShowFront()` in `CardsFlipStage`; idle stays on through Hold until `FlyToWallet` calls `HideRevealVfx()`. `Setup Pack Rig` adds `UiVfx` and wires `burstVfx` / `revealIdleVfx` on the prefab.
 - All cards share one silhouette (`Art/Final/Card/card_mask.png`), so any art sprite fits. Card art = `CardData.face` (illustration + baked background, regenerate with `tools/art/make_card_art.py`).

@@ -22,6 +22,9 @@ namespace PackOpen
         [SerializeField] UiVfx burstVfx;
         [SerializeField] UiVfx revealIdleVfx;
 
+        /// <summary>Setup Pack Rig runs prefab VFX wiring once, then leaves hand-edits alone.</summary>
+        [SerializeField, HideInInspector] int cardSetupVersion;
+
         public CardData Data { get; private set; }
         public bool IsFront { get; private set; }
 

@@ -864,6 +864,7 @@ MonoBehaviour:
   - {fileID: 1695969692967483115}
   nameLabel: {fileID: 7943291928996707340}
   burstVfx: {fileID: 912390294328897409}
+  cardSetupVersion: 1
   revealIdleVfx: {fileID: 4442720405217589088}
 --- !u!114 &3268447863392551720
 MonoBehaviour:

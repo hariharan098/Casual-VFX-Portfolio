@@ -8,6 +8,7 @@ namespace PackOpen.Stages
     public class PackMoveDownStage : PackOpenStageBase
     {
         [SerializeField] PackRig rig;
+        [SerializeField] UiVfx preGlowVfx;
         [SerializeField] float hopHeight = 40f;
         [SerializeField] float hopTime = 0.12f;
         [SerializeField] float dropTime = 0.45f;
@@ -27,7 +28,14 @@ namespace PackOpen.Stages
 
             Vector3 start = root.localPosition;
             Vector3 end = new Vector3(exitX, exitY, start.z);
-            if (ctx.Skip) { root.localPosition = end; yield break; }
+            if (ctx.Skip)
+            {
+                preGlowVfx?.Hide();
+                root.localPosition = end;
+                yield break;
+            }
+
+            preGlowVfx?.Play();
 
             Vector3 s0 = rig.BaseScale;
             var seq = DOTween.Sequence().SetTarget(rig);
@@ -44,6 +52,7 @@ namespace PackOpen.Stages
             yield return PackRig.Await(seq, ctx);
             root.localPosition = end;
             root.localScale = s0;
+            preGlowVfx?.Hide();
         }
     }
 }

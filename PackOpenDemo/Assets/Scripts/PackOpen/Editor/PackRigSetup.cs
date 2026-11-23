@@ -9,9 +9,8 @@ using UnityEngine.UI;
 namespace PackOpen.Editor
 {
     /// <summary>
-    /// Adds the PackRig (full pack, opened body, tear strip) to the demo scene and puts the DOTween
-    /// PackAppear / PackTear stages in their slots. Idempotent and non-destructive: existing objects
-    /// are reused, nothing else in the scene is touched. Menu: PackOpen/Setup Pack Rig.
+    /// Wires pack/card rig and stage references. Does not re-apply tween presets (tuningVersion),
+    /// re-layer the canvas, or rewrite prefabs once they are marked. Menu: PackOpen/Setup Pack Rig.
     /// </summary>
     public static class PackRigSetup
     {
@@ -39,7 +38,6 @@ namespace PackOpen.Editor
         static void Apply(bool save)
         {
             AssetDatabase.Refresh();
-            PackOpenProjectSetup.WireArt();
 
             var shader = Shader.Find(ShaderName);
             var sFull = AssetDatabase.LoadAssetAtPath<Sprite>($"{ArtDir}/pack_blue_full.png");
@@ -89,10 +87,11 @@ namespace PackOpen.Editor
 
             Wire(seq, PackOpenStageId.PackAppear, typeof(PackAppearStage), ("rig", rig), ("idleVfx", idleVfx));
             Wire(seq, PackOpenStageId.PackTear, typeof(PackTearStage), ("rig", rig), ("idleVfx", idleVfx), ("tearVfx", tearVfx));
-            LayerVfx(canvas, rig, cards);
+            TryLayerVfx(canvas, rig, cards);
             MigrateAppear(seq);
             MigrateTear(seq);
-            Wire(seq, PackOpenStageId.PackMoveDown, typeof(PackMoveDownStage), ("rig", rig));
+            var preGlowVfx = EnsurePackChildVfx(rig, "VFX_Card_PreGlow");
+            Wire(seq, PackOpenStageId.PackMoveDown, typeof(PackMoveDownStage), ("rig", rig), ("preGlowVfx", preGlowVfx));
             Wire(seq, PackOpenStageId.CardsMoveOut, typeof(CardsMoveOutStage), ("rig", rig), ("cards", cards), ("glowVfx", glowVfx));
             Wire(seq, PackOpenStageId.CardsFlip, typeof(CardsFlipStage), ("cards", cards));
             Wire(seq, PackOpenStageId.Hold, typeof(HoldStage));
@@ -186,7 +185,13 @@ namespace PackOpen.Editor
 
                 var tso = new SerializedObject(target);
                 foreach (var (field, value) in fields)
-                    tso.FindProperty(field).objectReferenceValue = value;
+                {
+                    var p = tso.FindProperty(field);
+                    if (p == null) continue;
+                    if (p.propertyType != SerializedPropertyType.ObjectReference) continue;
+                    if (p.objectReferenceValue != null) continue;
+                    p.objectReferenceValue = value;
+                }
                 tso.ApplyModifiedPropertiesWithoutUndo();
                 break;
             }
@@ -296,7 +301,9 @@ namespace PackOpen.Editor
             return prefab.GetComponent<CardView>();
         }
 
-        /// <summary>Adds UiVfx to nested card burst/idle and wires CardView on the Card prefab asset.</summary>
+        const int CardSetupVersion = 1;
+
+        /// <summary>Once per Card.prefab: UiVfx + reveal refs. Skipped when cardSetupVersion is current.</summary>
         static void EnsureCardRevealVfx()
         {
             var path = CardPrefabPath;
@@ -306,6 +313,10 @@ namespace PackOpen.Editor
             {
                 var view = contents.GetComponent<CardView>();
                 if (view == null) return;
+                var vso = new SerializedObject(view);
+                var ver = vso.FindProperty("cardSetupVersion");
+                if (ver != null && ver.intValue >= CardSetupVersion)
+                    return;
                 UiVfx burst = null, idle = null;
                 foreach (var t in contents.GetComponentsInChildren<Transform>(true))
                 {
@@ -320,19 +331,22 @@ namespace PackOpen.Editor
                         if (idle == null) idle = t.gameObject.AddComponent<UiVfx>();
                     }
                 }
-                var so = new SerializedObject(view);
-                var burstP = so.FindProperty("burstVfx");
-                var idleP = so.FindProperty("revealIdleVfx");
-                if (burstP != null) burstP.objectReferenceValue = burst;
-                if (idleP != null) idleP.objectReferenceValue = idle;
-                so.ApplyModifiedPropertiesWithoutUndo();
-                view.EnforceCanvasLayers();
-                foreach (var cv in contents.GetComponentsInChildren<Canvas>(true))
+                var burstP = vso.FindProperty("burstVfx");
+                var idleP = vso.FindProperty("revealIdleVfx");
+                if (burstP != null && burstP.objectReferenceValue == null) burstP.objectReferenceValue = burst;
+                if (idleP != null && idleP.objectReferenceValue == null) idleP.objectReferenceValue = idle;
+                if (ver != null) ver.intValue = CardSetupVersion;
+                vso.ApplyModifiedPropertiesWithoutUndo();
+                if (contents.GetComponentsInChildren<Canvas>(true).Length == 0)
                 {
-                    var cso = new SerializedObject(cv);
-                    var over = cso.FindProperty("m_OverrideSorting");
-                    if (over != null) over.boolValue = true;
-                    cso.ApplyModifiedPropertiesWithoutUndo();
+                    view.EnforceCanvasLayers();
+                    foreach (var cv in contents.GetComponentsInChildren<Canvas>(true))
+                    {
+                        var cso = new SerializedObject(cv);
+                        var over = cso.FindProperty("m_OverrideSorting");
+                        if (over != null) over.boolValue = true;
+                        cso.ApplyModifiedPropertiesWithoutUndo();
+                    }
                 }
                 PrefabUtility.SaveAsPrefabAsset(contents, path);
             }
@@ -355,8 +369,10 @@ namespace PackOpen.Editor
                 cards = go.AddComponent<CardsRig>();
                 cards.container = rt;
             }
-            // Cards sit behind the pack so they pop out from behind its top edge.
-            cards.container.SetSiblingIndex(Mathf.Max(0, rig.transform.GetSiblingIndex()));
+            // Only fix draw order when cards ended up in front of the pack (common after manual edits).
+            int packIdx = rig.transform.GetSiblingIndex();
+            if (cards.container.GetSiblingIndex() > packIdx)
+                cards.container.SetSiblingIndex(Mathf.Max(0, packIdx));
             if (cardPrefab != null) cards.cardPrefab = cardPrefab;
             EditorUtility.SetDirty(cards);
             return cards;
@@ -428,6 +444,22 @@ namespace PackOpen.Editor
 
         const string VfxDir = "Assets/VFX/Prefabs/Final";
 
+        /// <summary>UiVfx on a nested child of the pack rig (e.g. VFX_Card_PreGlow on Pack_Blue).</summary>
+        static UiVfx EnsurePackChildVfx(PackRig rig, string childName)
+        {
+            if (rig == null) return null;
+            foreach (var t in rig.GetComponentsInChildren<Transform>(true))
+            {
+                if (t.name != childName) continue;
+                var v = t.GetComponent<UiVfx>();
+                if (v == null) v = t.gameObject.AddComponent<UiVfx>();
+                EditorUtility.SetDirty(t.gameObject);
+                return v;
+            }
+            Debug.LogWarning($"[PackOpen] {childName} not found under PackRig; PackMoveDown pre-glow skipped.");
+            return null;
+        }
+
         /// <summary>
         /// Instance of a UI VFX prefab, inactive, with UiVfx. An instance that already exists anywhere under the Canvas is reused
         /// (so hand-placed ones are kept). New ones go to Canvas/VFX_Back (behind cards and pack) or Canvas/VFX (in front of the pack).
@@ -466,19 +498,46 @@ namespace PackOpen.Editor
             return vfx;
         }
 
-        /// <summary>Canvas order (back to front): Scrim, Anchors, VFX_Back (idle, card glow), Cards, PackRig, VFX (tear), TapLayer.</summary>
-        static void LayerVfx(Canvas canvas, PackRig rig, CardsRig cards)
+        /// <summary>Reorders only when layers are wrong: VFX_Back → Cards → Pack → VFX (front).</summary>
+        static void TryLayerVfx(Canvas canvas, PackRig rig, CardsRig cards)
         {
             var canvasRt = (RectTransform)canvas.transform;
             var back = canvasRt.Find("VFX_Back");
             var front = canvasRt.Find("VFX");
             var cardsT = cards != null ? FindTop(canvasRt, cards.container) : null;
             var rigT = FindTop(canvasRt, rig.transform);
+            if (back == null || cardsT == null || rigT == null) return;
+
+            int iBack = back.GetSiblingIndex(), iCards = cardsT.GetSiblingIndex(), iRig = rigT.GetSiblingIndex();
+            int iFront = front != null ? front.GetSiblingIndex() : iRig + 1;
+            if (iBack < iCards && iCards < iRig && iRig < iFront)
+                return;
+
+            var order = new System.Collections.Generic.List<Transform> { back, cardsT, rigT };
+            if (front != null) order.Add(front);
+            int start = int.MaxValue;
+            foreach (var t in order) start = Mathf.Min(start, t.GetSiblingIndex());
+            for (int i = 0; i < order.Count; i++) order[i].SetSiblingIndex(start + i);
+        }
+
+        [MenuItem("PackOpen/Force Layer VFX (canvas order)")]
+        public static void ForceLayerVfxMenu()
+        {
+            var canvas = Object.FindFirstObjectByType<Canvas>();
+            var rig = Object.FindFirstObjectByType<PackRig>();
+            var cards = Object.FindFirstObjectByType<CardsRig>();
+            if (canvas == null || rig == null || cards == null) return;
+            var canvasRt = (RectTransform)canvas.transform;
+            var back = canvasRt.Find("VFX_Back");
+            var front = canvasRt.Find("VFX");
+            var cardsT = FindTop(canvasRt, cards.container);
+            var rigT = FindTop(canvasRt, rig.transform);
             var order = new System.Collections.Generic.List<Transform>();
             foreach (var t in new[] { back, cardsT, rigT, front }) if (t != null) order.Add(t);
             int start = int.MaxValue;
             foreach (var t in order) start = Mathf.Min(start, t.GetSiblingIndex());
             for (int i = 0; i < order.Count; i++) order[i].SetSiblingIndex(start + i);
+            EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
         }
 
         static Transform FindTop(Transform canvas, Transform t)

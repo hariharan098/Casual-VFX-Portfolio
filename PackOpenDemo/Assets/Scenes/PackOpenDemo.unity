@@ -153,8 +153,8 @@ RectTransform:
   - {fileID: 2023131058}
   - {fileID: 1644194360}
   - {fileID: 816037615}
-  - {fileID: 2098270447}
   - {fileID: 501232579}
+  - {fileID: 2098270447}
   - {fileID: 215723378}
   - {fileID: 1441445780}
   m_Father: {fileID: 0}
@@ -693,6 +693,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6673173629748488987, guid: b177be8216af34bed969be63a16c8a38, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6956386483945885382, guid: b177be8216af34bed969be63a16c8a38, type: 3}
       propertyPath: m_Name
       value: Pack_Blue
@@ -718,6 +722,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 92fe2f696b21a42d88ef1cb1ded14709, type: 3}
   m_Name: 
   m_EditorClassIdentifier: PackOpen.Stages::PackOpen.Stages.PackRig
+--- !u!114 &501232581 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 36413347293759388, guid: b177be8216af34bed969be63a16c8a38, type: 3}
+  m_PrefabInstance: {fileID: 501232578}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6098a320624ec4a8db6f0e763470d110, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: PackOpen.Runtime::PackOpen.UiVfx
 --- !u!1 &529419295
 GameObject:
   m_ObjectHideFlags: 0
@@ -1127,8 +1142,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: PackOpen.Stages::PackOpen.Stages.PackTearStage
   rig: {fileID: 501232580}
-  idleVfx: {fileID: 66141651}
-  tearVfx: {fileID: 567876956}
+  idleVfx: {fileID: 0}
+  tearVfx: {fileID: 0}
   tearOffset: {x: 180, y: -30}
   idleStopLead: 0.3
   vfxStopTime: 1.2
@@ -1211,7 +1226,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: PackOpen.Stages::PackOpen.Stages.PackAppearStage
   rig: {fileID: 501232580}
-  idleVfx: {fileID: 66141651}
+  idleVfx: {fileID: 0}
   idleOffset: {x: 0, y: 0}
   idleStopTime: 0.5
   enterFromSide: 1
@@ -1307,6 +1322,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: PackOpen.Stages::PackOpen.Stages.PackMoveDownStage
   rig: {fileID: 501232580}
+  preGlowVfx: {fileID: 501232581}
   hopHeight: 40
   hopTime: 0.12
   dropTime: 0.45

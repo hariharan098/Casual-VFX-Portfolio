@@ -26,7 +26,7 @@ namespace PackOpen
         public bool IsFront { get; private set; }
 
         /// <summary>Nested Canvas sort keys (same on every card so all back VFX draw under all card art).</summary>
-        public const int SortBackVfx = 0;
+        public const int SortBackVfx = 1;
         public const int SortCardArt = 10;
         public const int SortFrontVfx = 20;
 
@@ -44,7 +44,6 @@ namespace PackOpen
             var vfxFront = rt.Find("VFX_Front");
             if (vfxBack != null) ApplySortLayer(vfxBack, SortBackVfx);
             if (front != null) ApplySortLayer(front.transform, SortCardArt);
-            if (back != null) ApplySortLayer(back.transform, SortCardArt);
             if (vfxFront != null) ApplySortLayer(vfxFront, SortFrontVfx);
         }
 

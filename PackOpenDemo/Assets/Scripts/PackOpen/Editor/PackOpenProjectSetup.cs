@@ -196,9 +196,9 @@ namespace PackOpen.Editor
             anchors.packCenter = NewRect("PackCenter", anchorsRoot, new Vector2(0, 100), Vector2.zero);
             anchors.cardSlots = new Transform[]
             {
-                NewRect("CardSlot_0", anchorsRoot, new Vector2(-320, 50), Vector2.zero),
+                NewRect("CardSlot_0", anchorsRoot, new Vector2(-290, 50), Vector2.zero),
                 NewRect("CardSlot_1", anchorsRoot, new Vector2(0, 50), Vector2.zero),
-                NewRect("CardSlot_2", anchorsRoot, new Vector2(320, 50), Vector2.zero),
+                NewRect("CardSlot_2", anchorsRoot, new Vector2(290, 50), Vector2.zero),
             };
             anchors.packExit = NewRect("PackExit", anchorsRoot, new Vector2(0, -1200), Vector2.zero);
             anchors.walletTarget = wallet;

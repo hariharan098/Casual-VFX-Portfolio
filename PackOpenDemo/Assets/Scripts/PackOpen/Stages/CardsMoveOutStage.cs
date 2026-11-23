@@ -26,7 +26,7 @@ namespace PackOpen.Stages
         [SerializeField] Ease scaleEase = Ease.OutBack;
 
         [Tooltip("Card spacing in canvas pixels, used only when the scene has fewer CardSlot anchors than cards.")]
-        [SerializeField] float fallbackSpacing = 320f;
+        [SerializeField] float fallbackSpacing = 290f;
 
         [Header("Glow burst (VFX_Card_Glow)")]
         [SerializeField] UiVfx glowVfx;

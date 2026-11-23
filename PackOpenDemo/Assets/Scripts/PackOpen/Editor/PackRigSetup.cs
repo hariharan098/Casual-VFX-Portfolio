@@ -241,7 +241,8 @@ namespace PackOpen.Editor
 
             var go = new GameObject("Card", typeof(RectTransform), typeof(CanvasGroup));
             var root = (RectTransform)go.transform;
-            root.sizeDelta = new Vector2(300, 450);
+            // Ref gif frame 82: card ~23% of screen width (≈250px at 1080 reference), 2:3 aspect
+            root.sizeDelta = new Vector2(250, 375);
             var view = go.AddComponent<CardView>();
             view.root = root;
 

@@ -259,7 +259,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -320, y: 50}
+  m_AnchoredPosition: {x: -290, y: 50}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &66141649 stripped
@@ -1540,7 +1540,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 320, y: 50}
+  m_AnchoredPosition: {x: 290, y: 50}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1441445779
@@ -1756,7 +1756,7 @@ MonoBehaviour:
   xEase: 9
   yEase: 27
   scaleEase: 27
-  fallbackSpacing: 320
+  fallbackSpacing: 290
   glowVfx: {fileID: 1970280717}
   glowOffset: {x: 0, y: 0}
   glowPerCard: 1

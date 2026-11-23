@@ -92,6 +92,7 @@ Run `PackOpen > Setup Pack Rig` once; it creates (never overwrites) these and wi
 - All cards share one silhouette (`Art/Final/Card/card_mask.png`), so any art sprite fits. Card art = `CardData.face` (illustration + baked background, regenerate with `tools/art/make_card_art.py`).
 - `Assets/Prefabs/Pack_Blue.prefab`: the PackRig hierarchy. Swap `PackData.packFull / packOpen / packStrip` to reskin it (the layout stays).
 - `CardsRig` (scene object `Cards`, behind the pack in sibling order) holds the Card prefab reference and the spawned cards.
+- Card size vs ref gif frame 82: `Card.prefab` **250×375** canvas px (was 300×450); `CardSlot` spacing **±290** (was ±320).
 - Tuning fields live on each stage component (stagger, travel time, eases, sink, flip time, fly time).
 
 ## Testing
@@ -100,6 +101,9 @@ Run `PackOpen > Setup Pack Rig` once; it creates (never overwrites) these and wi
 - Play Mode tests: Window > General > Test Runner > PlayMode (checks the 7 stages fire in order with placeholders).
 
 Timing notes vs the reference (`docs/00_reference_breakdown.md`): log tweaks here.
+
+## Card glow texture
+- `Assets/VFX/Textures/glow_border20.png` — high-res (512) rounded card rim for additive VFX (`mat_vfx_atlas_mobile_additive`). Regenerate: `python3 tools/art/make_glow_border.py`.
 
 ## Pack entry (PackAppearStage)
 - Pack swings in from the right (`sideOffset` 700,-150 canvas px), tilted -50° and unwinding, overshoots the centre, then lands with a hop (`bounceHop`) and squash/stretch (`bounceSquash`).

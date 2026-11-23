@@ -693,10 +693,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 6673173629748488987, guid: b177be8216af34bed969be63a16c8a38, type: 3}
-      propertyPath: m_IsActive
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 6956386483945885382, guid: b177be8216af34bed969be63a16c8a38, type: 3}
       propertyPath: m_Name
       value: Pack_Blue
@@ -1142,8 +1138,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: PackOpen.Stages::PackOpen.Stages.PackTearStage
   rig: {fileID: 501232580}
-  idleVfx: {fileID: 0}
-  tearVfx: {fileID: 0}
+  idleVfx: {fileID: 66141651}
+  tearVfx: {fileID: 567876956}
   tearOffset: {x: 180, y: -30}
   idleStopLead: 0.3
   vfxStopTime: 1.2
@@ -1226,7 +1222,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: PackOpen.Stages::PackOpen.Stages.PackAppearStage
   rig: {fileID: 501232580}
-  idleVfx: {fileID: 0}
+  idleVfx: {fileID: 66141651}
   idleOffset: {x: 0, y: 0}
   idleStopTime: 0.5
   enterFromSide: 1

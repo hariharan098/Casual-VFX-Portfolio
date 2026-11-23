@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 51736521645082549}
   - component: {fileID: 4882517701986135996}
   - component: {fileID: 759164757588171480}
+  - component: {fileID: 6917791554152085965}
   m_Layer: 0
   m_Name: Glow
   m_TagString: Untagged
@@ -121,7 +122,7 @@ ParticleSystem:
     startLifetime:
       serializedVersion: 2
       minMaxState: 0
-      scalar: 3
+      scalar: 2
       minScalar: 5
       maxCurve:
         serializedVersion: 2
@@ -1043,14 +1044,14 @@ ParticleSystem:
     curve:
       serializedVersion: 2
       minMaxState: 1
-      scalar: 3
+      scalar: 5
       minScalar: 1
       maxCurve:
         serializedVersion: 2
         m_Curve:
         - serializedVersion: 3
           time: 0
-          value: 0.78378445
+          value: 0.32432497
           inSlope: 5.1902666
           outSlope: 5.1902666
           tangentMode: 0
@@ -1058,8 +1059,8 @@ ParticleSystem:
           inWeight: 0
           outWeight: 0.2982156
         - serializedVersion: 3
-          time: 0.026006171
-          value: 1
+          time: 0.017734874
+          value: 0.5405405
           inSlope: 0.39452252
           outSlope: 0.39452252
           tangentMode: 0
@@ -1069,8 +1070,8 @@ ParticleSystem:
         - serializedVersion: 3
           time: 1
           value: 1
-          inSlope: 0
-          outSlope: 0
+          inSlope: 0.46775508
+          outSlope: 0.46775508
           tangentMode: 34
           weightedMode: 0
           inWeight: 0.33333334
@@ -4916,6 +4917,26 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1405777617036596649}
   m_CullTransparentMesh: 1
+--- !u!114 &6917791554152085965
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1405777617036596649}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1b1834f919ec44573b6610da9b018600, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Zynga.GameEngine.UI.Effects.ZParticleSystem
+  m_Material: {fileID: 2100000, guid: d4b21b0dd56f64a4b9a4fc4dfc2363da, type: 2}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &2589795275221367215
 GameObject:
   m_ObjectHideFlags: 0

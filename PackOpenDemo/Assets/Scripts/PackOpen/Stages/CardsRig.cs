@@ -24,6 +24,7 @@ namespace PackOpen.Stages
                 var c = Instantiate(cardPrefab, container);
                 c.name = "Card_" + i;
                 c.Bind(ctx.Results[i].Card, ctx.Pack != null ? ctx.Pack.cardBack : null);
+                c.EnforceCanvasLayers();
                 c.gameObject.SetActive(false);
                 Cards.Add(c);
             }

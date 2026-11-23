@@ -325,6 +325,14 @@ namespace PackOpen.Editor
                 if (burstP != null) burstP.objectReferenceValue = burst;
                 if (idleP != null) idleP.objectReferenceValue = idle;
                 so.ApplyModifiedPropertiesWithoutUndo();
+                view.EnforceCanvasLayers();
+                foreach (var cv in contents.GetComponentsInChildren<Canvas>(true))
+                {
+                    var cso = new SerializedObject(cv);
+                    var over = cso.FindProperty("m_OverrideSorting");
+                    if (over != null) over.boolValue = true;
+                    cso.ApplyModifiedPropertiesWithoutUndo();
+                }
                 PrefabUtility.SaveAsPrefabAsset(contents, path);
             }
             finally

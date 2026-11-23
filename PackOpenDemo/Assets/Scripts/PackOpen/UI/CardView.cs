@@ -25,6 +25,40 @@ namespace PackOpen
         public CardData Data { get; private set; }
         public bool IsFront { get; private set; }
 
+        /// <summary>Nested Canvas sort keys (same on every card so all back VFX draw under all card art).</summary>
+        public const int SortBackVfx = 0;
+        public const int SortCardArt = 10;
+        public const int SortFrontVfx = 20;
+
+        void Awake() => EnforceCanvasLayers();
+
+        /// <summary>
+        /// UI "layers" via nested Canvas.overrideSorting (not a second camera): every card uses the same
+        /// three sorting orders so burst/idle-back paint below every card's Front/Back, and VFX_Front above art.
+        /// RectMask2D does not reliably clip ZParticleSystem meshes, so sorting is the fix.
+        /// </summary>
+        public void EnforceCanvasLayers()
+        {
+            var rt = root != null ? root : (RectTransform)transform;
+            var vfxBack = rt.Find("VFX_Back");
+            var vfxFront = rt.Find("VFX_Front");
+            if (vfxBack != null) ApplySortLayer(vfxBack, SortBackVfx);
+            if (front != null) ApplySortLayer(front.transform, SortCardArt);
+            if (back != null) ApplySortLayer(back.transform, SortCardArt);
+            if (vfxFront != null) ApplySortLayer(vfxFront, SortFrontVfx);
+        }
+
+        static void ApplySortLayer(Transform t, int order)
+        {
+            var c = t.GetComponent<Canvas>();
+            if (c == null) c = t.gameObject.AddComponent<Canvas>();
+            c.overrideSorting = true;
+            c.sortingOrder = order;
+            // Sub-canvases must not steal input or spawn extra raycasters.
+            var ray = t.GetComponent<GraphicRaycaster>();
+            if (ray != null) Object.Destroy(ray);
+        }
+
         /// <summary>Sets the art, stars and name. Leaves the card face-down.</summary>
         public void Bind(CardData card, Sprite backSprite = null)
         {
@@ -37,6 +71,7 @@ namespace PackOpen
                     if (stars[i] != null) stars[i].gameObject.SetActive(i < card.rarity);
             }
             if (backImage != null && backSprite != null) backImage.sprite = backSprite;
+            EnforceCanvasLayers();
             ShowBack();
         }
 
@@ -53,6 +88,7 @@ namespace PackOpen
         /// <summary>Starts burst + idle on the same frame as the face swap (CardsFlipStage).</summary>
         public void PlayRevealVfx()
         {
+            EnforceCanvasLayers();
             ResolveVfxRefs();
             if (burstVfx != null) burstVfx.Play();
             if (revealIdleVfx != null) revealIdleVfx.Play();

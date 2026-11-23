@@ -75,6 +75,7 @@ namespace PackOpen.Editor
 
             var rig = EnsurePackPrefab(canvas, anchors, mat, layout, sFull, sOpen, sStrip);
             var cardPrefab = EnsureCardPrefab();
+            EnsureCardRevealVfx();
             var cards = EnsureCardsRig(canvas, rig, cardPrefab);
             if (anchors != null && anchors.packExit != null)
             {
@@ -292,6 +293,44 @@ namespace PackOpen.Editor
             var prefab = PrefabUtility.SaveAsPrefabAsset(go, CardPrefabPath);
             Object.DestroyImmediate(go);
             return prefab.GetComponent<CardView>();
+        }
+
+        /// <summary>Adds UiVfx to nested card burst/idle and wires CardView on the Card prefab asset.</summary>
+        static void EnsureCardRevealVfx()
+        {
+            var path = CardPrefabPath;
+            if (!System.IO.File.Exists(path)) return;
+            var contents = PrefabUtility.LoadPrefabContents(path);
+            try
+            {
+                var view = contents.GetComponent<CardView>();
+                if (view == null) return;
+                UiVfx burst = null, idle = null;
+                foreach (var t in contents.GetComponentsInChildren<Transform>(true))
+                {
+                    if (t.name == "VFX_Card_Burst")
+                    {
+                        burst = t.GetComponent<UiVfx>();
+                        if (burst == null) burst = t.gameObject.AddComponent<UiVfx>();
+                    }
+                    if (t.name == "VFX_CardPack_Idle")
+                    {
+                        idle = t.GetComponent<UiVfx>();
+                        if (idle == null) idle = t.gameObject.AddComponent<UiVfx>();
+                    }
+                }
+                var so = new SerializedObject(view);
+                var burstP = so.FindProperty("burstVfx");
+                var idleP = so.FindProperty("revealIdleVfx");
+                if (burstP != null) burstP.objectReferenceValue = burst;
+                if (idleP != null) idleP.objectReferenceValue = idle;
+                so.ApplyModifiedPropertiesWithoutUndo();
+                PrefabUtility.SaveAsPrefabAsset(contents, path);
+            }
+            finally
+            {
+                PrefabUtility.UnloadPrefabContents(contents);
+            }
         }
 
         static CardsRig EnsureCardsRig(Canvas canvas, PackRig rig, CardView cardPrefab)

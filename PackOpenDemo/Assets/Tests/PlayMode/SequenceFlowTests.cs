@@ -47,7 +47,11 @@ namespace PackOpen.Tests
 
             var vfxAll = Object.FindObjectsByType<UiVfx>(FindObjectsInactive.Include, FindObjectsSortMode.None);
             UiVfx idle = null, fast = null;
-            foreach (var v in vfxAll) { if (v.name == "VFX_CardPack_Idle") idle = v; if (v.name == "VFX_CardPack_Fast") fast = v; }
+            foreach (var v in vfxAll)
+            {
+                if (v.name == "VFX_CardPack_Idle" && v.GetComponentInParent<CardsRig>() == null) idle = v;
+                if (v.name == "VFX_CardPack_Fast") fast = v;
+            }
             Assert.NotNull(idle, "Idle VFX missing: run PackOpen > Setup Pack Rig");
             Assert.NotNull(fast, "Fast VFX missing: run PackOpen > Setup Pack Rig");
             Assert.IsFalse(idle.IsActive); Assert.IsFalse(fast.IsActive);
@@ -59,7 +63,7 @@ namespace PackOpen.Tests
             float appearDist = 99f, appearRot = 99f, appearScale = 0f, appearStart = -1f, appearEnd = -1f, firstOffX = float.NaN, maxAboveY = 0f;
             seq.StageStarted += (id, c) => { if (id == PackOpenStageId.PackAppear) appearStart = Time.time; };
             seq.StageFinished += (id, c) => { if (id == PackOpenStageId.PackAppear) { appearEnd = Time.time; appearDist = Vector3.Distance(rigRef.root.position, centerAnchor.position); appearRot = rigRef.root.localEulerAngles.z; appearScale = rigRef.root.localScale.x / rigRef.BaseScale.x; } };
-            bool idleSeen = false, fastSeen = false, idleDuringAppear = false;
+            bool idleSeen = false, fastSeen = false, idleDuringAppear = false, cardRevealVfxSeen = false;
 
             Assert.IsTrue(seq.Begin(pack));
             float t = 0;
@@ -73,6 +77,19 @@ namespace PackOpen.Tests
                     var local = rigRef.root.parent.InverseTransformVector(rigRef.root.position - centerAnchor.position);
                     if (float.IsNaN(firstOffX)) firstOffX = local.x;
                     maxAboveY = Mathf.Max(maxAboveY, local.y);
+                }
+                if (seq.CurrentStage == PackOpenStageId.CardsFlip)
+                {
+                    var cr = Object.FindFirstObjectByType<CardsRig>();
+                    if (cr != null)
+                    {
+                        foreach (var cv in cr.Cards)
+                        {
+                            if (!cv.IsFront) continue;
+                            foreach (var uv in cv.GetComponentsInChildren<UiVfx>(true))
+                                if (uv.IsActive) cardRevealVfxSeen = true;
+                        }
+                    }
                 }
                 if (seq.CurrentStage == PackOpenStageId.PackTear && rigRef.strip.gameObject.activeSelf)
                 {
@@ -111,8 +128,13 @@ namespace PackOpen.Tests
             Assert.AreEqual(pack.cardCount, dealt, "one card per result should be spawned");
             Assert.AreEqual(dealt, dealtActive, "all cards visible after CardsMoveOut");
             Assert.AreEqual(dealt, facesUp, "all cards face-up after CardsFlip");
+            Assert.IsTrue(cardRevealVfxSeen, "card burst or idle VFX should play on flip");
             foreach (var cv in Object.FindFirstObjectByType<CardsRig>().Cards)
+            {
                 Assert.IsFalse(cv.gameObject.activeSelf, "cards should be gone after FlyToWallet");
+                foreach (var uv in cv.GetComponentsInChildren<UiVfx>(true))
+                    Assert.IsFalse(uv.IsActive, "per-card reveal VFX should be off after wallet");
+            }
 
             // Pack rig ends in the torn state: opened body shown, full pack and flown-off strip hidden.
             var rig = Object.FindFirstObjectByType<PackRig>();

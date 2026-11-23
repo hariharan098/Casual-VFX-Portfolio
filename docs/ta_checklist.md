@@ -88,7 +88,8 @@ Lean (`wobbleTime` 0.45s, `wobbleAngle` 4 degrees clockwise, tiny squash/skew) -
 
 ## Prefabs
 Run `PackOpen > Setup Pack Rig` once; it creates (never overwrites) these and wires all stages:
-- `Assets/Prefabs/Card.prefab`: `Front` (ArtMask with Mask > Art, shared Frame, Stars, Name) and `Back`. `CardView.Bind/ShowBack/ShowFront`. All cards share one silhouette (`Art/Final/Card/card_mask.png`), so any art sprite fits. Card art = `CardData.face` (illustration + baked background, regenerate with `tools/art/make_card_art.py`).
+- `Assets/Prefabs/Card.prefab`: `Front` (ArtMask with Mask > Art, shared Frame, Stars, Name) and `Back`. Nested `VFX_Card_Burst` (behind) and `VFX_CardPack_Idle` (in front), both off until flip. `CardView.PlayRevealVfx()` runs on the same frame as `ShowFront()` in `CardsFlipStage`; idle stays on through Hold until `FlyToWallet` calls `HideRevealVfx()`. `Setup Pack Rig` adds `UiVfx` and wires `burstVfx` / `revealIdleVfx` on the prefab.
+- All cards share one silhouette (`Art/Final/Card/card_mask.png`), so any art sprite fits. Card art = `CardData.face` (illustration + baked background, regenerate with `tools/art/make_card_art.py`).
 - `Assets/Prefabs/Pack_Blue.prefab`: the PackRig hierarchy. Swap `PackData.packFull / packOpen / packStrip` to reskin it (the layout stays).
 - `CardsRig` (scene object `Cards`, behind the pack in sibling order) holds the Card prefab reference and the spawned cards.
 - Tuning fields live on each stage component (stagger, travel time, eases, sink, flip time, fly time).

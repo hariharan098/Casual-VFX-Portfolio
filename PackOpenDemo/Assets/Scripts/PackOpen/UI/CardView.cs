@@ -18,6 +18,10 @@ namespace PackOpen
         public Image[] stars;
         public Text nameLabel;
 
+        [Header("Reveal VFX (nested on prefab)")]
+        [SerializeField] UiVfx burstVfx;
+        [SerializeField] UiVfx revealIdleVfx;
+
         public CardData Data { get; private set; }
         public bool IsFront { get; private set; }
 
@@ -36,8 +40,40 @@ namespace PackOpen
             ShowBack();
         }
 
-        public void ShowBack() { IsFront = false; if (front != null) front.SetActive(false); if (back != null) back.SetActive(true); }
+        public void ShowBack()
+        {
+            IsFront = false;
+            if (front != null) front.SetActive(false);
+            if (back != null) back.SetActive(true);
+            HideRevealVfx();
+        }
+
         public void ShowFront() { IsFront = true; if (front != null) front.SetActive(true); if (back != null) back.SetActive(false); }
+
+        /// <summary>Starts burst + idle on the same frame as the face swap (CardsFlipStage).</summary>
+        public void PlayRevealVfx()
+        {
+            ResolveVfxRefs();
+            if (burstVfx != null) burstVfx.Play();
+            if (revealIdleVfx != null) revealIdleVfx.Play();
+        }
+
+        public void HideRevealVfx()
+        {
+            ResolveVfxRefs();
+            if (burstVfx != null) burstVfx.Hide();
+            if (revealIdleVfx != null) revealIdleVfx.Hide();
+        }
+
+        void ResolveVfxRefs()
+        {
+            if (burstVfx != null && revealIdleVfx != null) return;
+            foreach (var v in GetComponentsInChildren<UiVfx>(true))
+            {
+                if (burstVfx == null && v.name == "VFX_Card_Burst") burstVfx = v;
+                if (revealIdleVfx == null && v.name == "VFX_CardPack_Idle") revealIdleVfx = v;
+            }
+        }
 
         public void SetAlpha(float a)
         {

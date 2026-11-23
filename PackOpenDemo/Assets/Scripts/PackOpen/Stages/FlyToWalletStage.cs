@@ -39,6 +39,7 @@ namespace PackOpen.Stages
                 seq.Insert(at + flyTime * 0.7f, CardsRig.Fade(card, 1f, 0f, flyTime * 0.3f));
                 seq.InsertCallback(at + flyTime, () =>
                 {
+                    card.HideRevealVfx();
                     card.gameObject.SetActive(false);
                     wallet.DOComplete();
                     wallet.DOPunchScale(Vector3.one * walletPunch, 0.25f, 5, 0.6f);
@@ -52,7 +53,12 @@ namespace PackOpen.Stages
 
         void HideAll()
         {
-            foreach (var c in cards.Cards) { c.gameObject.SetActive(false); c.SetAlpha(1f); }
+            foreach (var c in cards.Cards)
+            {
+                c.HideRevealVfx();
+                c.gameObject.SetActive(false);
+                c.SetAlpha(1f);
+            }
         }
     }
 }

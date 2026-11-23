@@ -17,7 +17,7 @@ namespace PackOpen.Stages
 
         public override IEnumerator Play(PackOpenContext ctx)
         {
-            if (ctx.Skip) { Finish(); yield break; }
+            if (ctx.Skip) { Finish(revealVfx: true); yield break; }
 
             var seq = DOTween.Sequence().SetTarget(this);
             for (int i = 0; i < cards.Cards.Count; i++)
@@ -26,7 +26,12 @@ namespace PackOpen.Stages
                 var rt = card.root;
                 float at = i * stagger;
                 seq.Insert(at, CardsRig.ScaleX(rt, 1f, 0f, halfFlipTime).SetEase(closeEase));
-                seq.InsertCallback(at + halfFlipTime, () => { card.ShowFront(); onCardRevealed?.Invoke(); });
+                seq.InsertCallback(at + halfFlipTime, () =>
+                {
+                    card.ShowFront();
+                    card.PlayRevealVfx();
+                    onCardRevealed?.Invoke();
+                });
                 seq.Insert(at + halfFlipTime, CardsRig.ScaleX(rt, 0f, 1f, halfFlipTime * 1.4f).SetEase(openEase));
                 // pop on Y so the card feels like it lifts
                 seq.Insert(at, CardsRig.ScaleY(rt, 1f, popScale, halfFlipTime).SetEase(Ease.OutQuad));
@@ -36,12 +41,13 @@ namespace PackOpen.Stages
             Finish();
         }
 
-        void Finish()
+        void Finish(bool revealVfx = false)
         {
             foreach (var c in cards.Cards)
             {
                 c.ShowFront();
                 c.root.localScale = Vector3.one;
+                if (revealVfx) c.PlayRevealVfx();
             }
         }
     }

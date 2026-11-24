@@ -717,9 +717,21 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 1541088085051303522, guid: b177be8216af34bed969be63a16c8a38, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6673173629748488987, guid: b177be8216af34bed969be63a16c8a38, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6956386483945885382, guid: b177be8216af34bed969be63a16c8a38, type: 3}
       propertyPath: m_Name
       value: Pack_Blue
+      objectReference: {fileID: 0}
+    - target: {fileID: 7200356983041541318, guid: b177be8216af34bed969be63a16c8a38, type: 3}
+      propertyPath: InitialModule.startLifetime.scalar
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -1777,7 +1789,7 @@ MonoBehaviour:
   rig: {fileID: 501232580}
   cards: {fileID: 2098270446}
   stagger: 0.18
-  travelTime: 0.55
+  travelTime: 0.7
   startScale: 0.55
   startTilt: 14
   spawnDepth: 60

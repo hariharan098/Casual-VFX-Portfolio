@@ -4,7 +4,7 @@ Demo Unity Project with some Casual Game TA Portfolio work.
 See docs/README_setup.md and docs/ta_checklist.md.
 A small portfolio Unity project trying to reproduce card collection sequence using DOTWEEN along with VFX and reusable card component. Custom shader created for packet opening vertex animations.
 
-<img width="952" height="1680" alt="final_1" src="https://github.com/user-attachments/assets/54663a52-9c5e-444c-b574-9ba7ef91a990" />
+<img width="571" height="1008" alt="final_1" src="https://github.com/user-attachments/assets/54663a52-9c5e-444c-b574-9ba7ef91a990" />
 
 ## Strip Vertex Shader
 - Vertex Animation for Sheer Bending and Wave motion to simulate the Packet tear without having to use 3D mesh
